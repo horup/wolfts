@@ -1,0 +1,8 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/frontend/bin
+/frontend/node_modules
+/frontend/obj/Debug
+/frontend/frontend.njsproj.user

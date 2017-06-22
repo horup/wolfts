@@ -1,2 +1,4 @@
 ﻿import * as renderer from './renderer';
-renderer.init();
+import * as Map from './map';
+
+renderer.init(Map.defaultMap);

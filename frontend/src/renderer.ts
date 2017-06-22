@@ -1,4 +1,5 @@
 ﻿import * as THREE from 'three';
+import { Map } from './map';
 var scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer;
 let background: THREE.Scene;
 let backgroundCamera: THREE.OrthographicCamera;
@@ -6,7 +7,7 @@ var geometry, material, mesh;
 
 let pressed = {};
 
-export function init() {
+export function init(map: Map) {
     document.body.onkeydown = (e) => {
         pressed[e.keyCode] = true;
         console.log(e.keyCode);
@@ -27,11 +28,11 @@ export function init() {
     camera.position.y = 0;
     var loader = new THREE.TextureLoader();
     loader.load('textures/walls.png', function (texture) {
-        for (let i = 0; i < test.layers[0].data.length; i++) {
-            if (test.layers[0].data[i] != 0) {
+        for (let i = 0; i < map.layers[0].data.length; i++) {
+            if (map.layers[0].data[i] != 0) {
                 var geometry = new THREE.CubeGeometry(1, 1, 1);
-                let tileset = test.tilesets[0];
-                let index = test.layers[0].data[i];
+                let tileset = map.tilesets[0];
+                let index = map.layers[0].data[i];
                 let tw = tileset.tilewidth / tileset.imagewidth;
                 let th = tileset.tileheight / tileset.imageheight;
                 let tx = (index % tileset.columns) / tileset.columns;
@@ -98,7 +99,7 @@ export function animate() {
 
 
 }
-
+/*
 var test = {
     "height": 16,
     "layers": [
@@ -136,4 +137,4 @@ var test = {
     "type": "map",
     "version": 1,
     "width": 16
-}
+}*/

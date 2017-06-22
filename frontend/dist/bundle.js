@@ -71,7 +71,8 @@
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var renderer = __webpack_require__(1);
-renderer.init();
+var Map = __webpack_require__(3);
+renderer.init(Map.defaultMap);
 
 
 /***/ }),
@@ -87,7 +88,7 @@ var background;
 var backgroundCamera;
 var geometry, material, mesh;
 var pressed = {};
-function init() {
+function init(map) {
     document.body.onkeydown = function (e) {
         pressed[e.keyCode] = true;
         console.log(e.keyCode);
@@ -105,11 +106,11 @@ function init() {
     camera.position.y = 0;
     var loader = new THREE.TextureLoader();
     loader.load('textures/walls.png', function (texture) {
-        for (var i = 0; i < test.layers[0].data.length; i++) {
-            if (test.layers[0].data[i] != 0) {
+        for (var i = 0; i < map.layers[0].data.length; i++) {
+            if (map.layers[0].data[i] != 0) {
                 var geometry = new THREE.CubeGeometry(1, 1, 1);
-                var tileset = test.tilesets[0];
-                var index = test.layers[0].data[i];
+                var tileset = map.tilesets[0];
+                var index = map.layers[0].data[i];
                 var tw = tileset.tilewidth / tileset.imagewidth;
                 var th = tileset.tileheight / tileset.imageheight;
                 var tx = (index % tileset.columns) / tileset.columns;
@@ -165,6 +166,7 @@ function animate() {
     renderer.render(scene, camera);
 }
 exports.animate = animate;
+/*
 var test = {
     "height": 16,
     "layers": [
@@ -178,8 +180,7 @@ var test = {
             "width": 16,
             "x": 0,
             "y": 0
-        }
-    ],
+        }],
     "nextobjectid": 1,
     "orientation": "orthogonal",
     "renderorder": "right-down",
@@ -198,13 +199,12 @@ var test = {
             "tilecount": 114,
             "tileheight": 64,
             "tilewidth": 64
-        }
-    ],
+        }],
     "tilewidth": 64,
     "type": "map",
     "version": 1,
     "width": 16
-};
+}*/ 
 
 
 /***/ }),
@@ -44314,6 +44314,35 @@ function CanvasRenderer() {
 }
 
 
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.defaultMap = {
+    layers: [
+        {
+            "data": [1, 1, 1, 7, 1, 1, 0, 0, 15, 15, 15, 15, 15, 15, 0, 0, 1, 0, 0, 0, 0, 1, 15, 15, 15, 0, 0, 0, 0, 15, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 27, 0, 0, 15, 0, 0, 1, 0, 0, 0, 0, 1, 15, 15, 15, 0, 0, 0, 0, 15, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 15, 0, 0, 0, 0, 15, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 15, 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 15, 15, 0, 15, 15, 0, 0, 0, 33, 33, 33, 33, 33, 33, 0, 0, 0, 33, 0, 33, 0, 0, 0, 0, 33, 0, 0, 0, 0, 33, 0, 0, 0, 33, 0, 33, 0, 0, 0, 0, 33, 0, 105, 0, 0, 33, 33, 33, 33, 33, 0, 33, 0, 0, 0, 0, 33, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 33, 0, 0, 0, 0, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            "height": 16,
+            "width": 16
+        }
+    ],
+    tilesets: [
+        {
+            "firstgid": 1,
+            "columns": 6,
+            "image": "textures\/walls.png",
+            "imageheight": 1216,
+            "imagewidth": 384,
+            "tileheight": 64,
+            "tilewidth": 64
+        }
+    ]
+};
 
 
 /***/ })
