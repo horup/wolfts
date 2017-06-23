@@ -37,6 +37,8 @@
     <Content Include="dist\style.css" />
     <Content Include="dist\textures\walls.png" />
     <Content Include="package.json" />
+    <Content Include="tools\maps\e01m01.tmx" />
+    <Content Include="tools\tileset\walls.tsx" />
     <Content Include="tsconfig.json">
       <SubType>Code</SubType>
     </Content>
@@ -46,6 +48,9 @@
     <Folder Include="dist\maps\" />
     <Folder Include="dist\textures\" />
     <Folder Include="src\" />
+    <Folder Include="tools\" />
+    <Folder Include="tools\maps\" />
+    <Folder Include="tools\tileset\" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="src\index.ts">
