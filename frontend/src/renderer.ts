@@ -22,10 +22,12 @@ export function init(map: Map) {
 
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
-    camera.rotation.y = 1.5;
-    camera.position.z = 9;
-    camera.position.x = 6;
-    camera.position.y = 0;
+   // camera.rotation.y = 1.5;
+  //  camera.position.z = 45;
+  //  camera.position.x = 28;
+    //  camera.position.y = 0;
+    camera.translateZ(45);
+    camera.translateX(28);
     var loader = new THREE.TextureLoader();
     loader.load('textures/walls.png', function (texture) {
         for (let i = 0; i < map.layers[0].data.length; i++) {
@@ -37,8 +39,6 @@ export function init(map: Map) {
                 let th = tileset.tileheight / tileset.imageheight;
                 let tx = (index % tileset.columns) / tileset.columns;
                 let ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
-                console.log(tx);
-                console.log(ty);
                 //  var uvs = [new THREE.Vector2(0, 0), new THREE.Vector2(1, 0), new THREE.Vector2(1, 1), new THREE.Vector2(0, 1)];
                 let uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
                 geometry.faceVertexUvs[0] = [];
@@ -49,8 +49,8 @@ export function init(map: Map) {
 
                 var material = new THREE.MeshBasicMaterial({ map: texture, overdraw: 0.5 });
 
-                let x = i % 16;
-                let y = Math.floor(i / 16);
+                let x = i % map.layers[0].width;
+                let y = Math.floor(i / map.layers[0].width);
                 var mesh = new THREE.Mesh(geometry, material);
                 mesh.translateX(x);
                 mesh.translateZ(y);

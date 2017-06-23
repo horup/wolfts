@@ -33,6 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="dist\index.html" />
+    <Content Include="dist\maps\e01m01.json" />
     <Content Include="dist\style.css" />
     <Content Include="dist\textures\walls.png" />
     <Content Include="package.json" />
@@ -42,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="dist\" />
+    <Folder Include="dist\maps\" />
     <Folder Include="dist\textures\" />
     <Folder Include="src\" />
   </ItemGroup>
