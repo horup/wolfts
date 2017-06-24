@@ -104,32 +104,76 @@ function init(map) {
     camera.translateX(map.layers[1].objects[0].x / 64);
     camera.rotation.y = -1.5;
     var loader = new THREE.TextureLoader();
+    /* loader.load('textures/walls.png', function (texture) {
+         var material = new THREE.MeshBasicMaterial({ map: texture, overdraw: 0.5 });
+         for (let i = 0; i < map.layers[0].data.length; i++) {
+             if (map.layers[0].data[i] != 0) {
+                 var geometry = new THREE.CubeGeometry(1, 1, 1);
+                 let tileset = map.tilesets[0];
+                 let index = map.layers[0].data[i];
+                 let tw = tileset.tilewidth / tileset.imagewidth;
+                 let th = tileset.tileheight / tileset.imageheight;
+                 let tx = (index % tileset.columns) / tileset.columns;
+                 let ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
+                 //  var uvs = [new THREE.Vector2(0, 0), new THREE.Vector2(1, 0), new THREE.Vector2(1, 1), new THREE.Vector2(0, 1)];
+                 let uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
+                 geometry.faceVertexUvs[0] = [];
+                 for (let i = 0; i < 6 * 2; i += 2) {
+                     geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
+                     geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
+                 }
+ 
+                 
+ 
+                 let x = i % map.layers[0].width;
+                 let y = Math.floor(i / map.layers[0].width);
+                 var mesh = new THREE.Mesh(geometry, material);
+                 mesh.translateX(x);
+                 mesh.translateZ(y);
+                 scene.add(mesh);
+                
+             }
+         }
+ 
+          background.add(new THREE.Mesh(new THREE.CubeGeometry(2, 1, 1), new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, depthTest: false })));
+                 let bottom = new THREE.Mesh(new THREE.CubeGeometry(2, 1, 1), new THREE.MeshBasicMaterial({ color: "#707070", overdraw: 0.5, depthTest: false }));
+                 bottom.translateY(1);
+                 background.add(bottom);
+ 
+ 
+         animate();
+     });*/
     loader.load('textures/walls.png', function (texture) {
+        var mapGeometry = new THREE.Geometry();
         var material = new THREE.MeshBasicMaterial({ map: texture, overdraw: 0.5 });
         for (var i = 0; i < map.layers[0].data.length; i++) {
             if (map.layers[0].data[i] != 0) {
-                var geometry = new THREE.CubeGeometry(1, 1, 1);
+                var geometry_1 = new THREE.CubeGeometry(1, 1, 1);
                 var tileset = map.tilesets[0];
                 var index = map.layers[0].data[i];
                 var tw = tileset.tilewidth / tileset.imagewidth;
                 var th = tileset.tileheight / tileset.imageheight;
                 var tx = (index % tileset.columns) / tileset.columns;
                 var ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
-                //  var uvs = [new THREE.Vector2(0, 0), new THREE.Vector2(1, 0), new THREE.Vector2(1, 1), new THREE.Vector2(0, 1)];
                 var uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
-                geometry.faceVertexUvs[0] = [];
+                geometry_1.faceVertexUvs[0] = [];
                 for (var i_1 = 0; i_1 < 6 * 2; i_1 += 2) {
-                    geometry.faceVertexUvs[0][i_1] = [uvs[3], uvs[0], uvs[2]];
-                    geometry.faceVertexUvs[0][i_1 + 1] = [uvs[0], uvs[1], uvs[2]];
+                    geometry_1.faceVertexUvs[0][i_1] = [uvs[3], uvs[0], uvs[2]];
+                    geometry_1.faceVertexUvs[0][i_1 + 1] = [uvs[0], uvs[1], uvs[2]];
                 }
                 var x = i % map.layers[0].width;
                 var y = Math.floor(i / map.layers[0].width);
-                var mesh = new THREE.Mesh(geometry, material);
-                mesh.translateX(x);
-                mesh.translateZ(y);
-                scene.add(mesh);
+                for (var _i = 0, _a = geometry_1.vertices; _i < _a.length; _i++) {
+                    var vertice = _a[_i];
+                    vertice.x += x;
+                    vertice.z += y;
+                }
+                THREE.GeometryUtils.merge(mapGeometry, geometry_1);
             }
         }
+        console.log(mapGeometry);
+        var mesh = new THREE.Mesh(mapGeometry, material);
+        scene.add(mesh);
         background.add(new THREE.Mesh(new THREE.CubeGeometry(2, 1, 1), new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, depthTest: false })));
         var bottom = new THREE.Mesh(new THREE.CubeGeometry(2, 1, 1), new THREE.MeshBasicMaterial({ color: "#707070", overdraw: 0.5, depthTest: false }));
         bottom.translateY(1);
@@ -143,6 +187,7 @@ function init(map) {
 }
 exports.init = init;
 function animate() {
+    var time = new Date().getTime();
     requestAnimationFrame(animate);
     //  mesh.rotation.x += 0.01;
     //  mesh.rotation.y += 0.02;
@@ -161,6 +206,7 @@ function animate() {
     renderer.clear();
     renderer.render(background, backgroundCamera);
     renderer.render(scene, camera);
+    console.log(new Date().getTime() - time + "ms");
 }
 exports.animate = animate;
 

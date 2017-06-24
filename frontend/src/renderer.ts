@@ -27,7 +27,7 @@ export function init(map: Map) {
     camera.rotation.y = -1.5;
 
     var loader = new THREE.TextureLoader();
-    loader.load('textures/walls.png', function (texture) {
+   /* loader.load('textures/walls.png', function (texture) {
         var material = new THREE.MeshBasicMaterial({ map: texture, overdraw: 0.5 });
         for (let i = 0; i < map.layers[0].data.length; i++) {
             if (map.layers[0].data[i] != 0) {
@@ -65,6 +65,52 @@ export function init(map: Map) {
 
 
         animate();
+    });*/
+
+    loader.load('textures/walls.png', function (texture) {
+        let mapGeometry = new THREE.Geometry();
+        let material = new THREE.MeshBasicMaterial({ map: texture, overdraw: 0.5 });
+        for (let i = 0; i < map.layers[0].data.length; i++) {
+            if (map.layers[0].data[i] != 0) {
+                let geometry = new THREE.CubeGeometry(1, 1, 1);
+                let tileset = map.tilesets[0];
+                let index = map.layers[0].data[i];
+                let tw = tileset.tilewidth / tileset.imagewidth;
+                let th = tileset.tileheight / tileset.imageheight;
+                let tx = (index % tileset.columns) / tileset.columns;
+                let ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
+                let uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
+                geometry.faceVertexUvs[0] = [];
+                for (let i = 0; i < 6 * 2; i += 2) {
+                    geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
+                    geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
+                }
+
+                let x = i % map.layers[0].width;
+                let y = Math.floor(i / map.layers[0].width);
+                for (let vertice of geometry.vertices)
+                {
+                    vertice.x += x;
+                    vertice.z += y;
+                }
+
+                THREE.GeometryUtils.merge(mapGeometry, geometry);
+            }
+        }
+
+
+        console.log(mapGeometry);
+
+        var mesh = new THREE.Mesh(mapGeometry, material);
+        scene.add(mesh);
+
+         background.add(new THREE.Mesh(new THREE.CubeGeometry(2, 1, 1), new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, depthTest: false })));
+                let bottom = new THREE.Mesh(new THREE.CubeGeometry(2, 1, 1), new THREE.MeshBasicMaterial({ color: "#707070", overdraw: 0.5, depthTest: false }));
+                bottom.translateY(1);
+                background.add(bottom);
+
+
+        animate();
     });
 
 
@@ -76,7 +122,7 @@ export function init(map: Map) {
 }
 
 export function animate() {
-
+    let time = new Date().getTime();
     requestAnimationFrame(animate);
     //  mesh.rotation.x += 0.01;
     //  mesh.rotation.y += 0.02;
@@ -97,6 +143,6 @@ export function animate() {
     renderer.clear();
     renderer.render(background, backgroundCamera);
     renderer.render(scene, camera);
-
+    console.log(new Date().getTime() - time + "ms");
 
 }
