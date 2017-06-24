@@ -22,14 +22,13 @@ export function init(map: Map) {
 
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
-   // camera.rotation.y = 1.5;
-  //  camera.position.z = 45;
-  //  camera.position.x = 28;
-    //  camera.position.y = 0;
-    camera.translateZ(45);
-    camera.translateX(28);
+    camera.translateZ(map.layers[1].objects[0].y / 64);
+    camera.translateX(map.layers[1].objects[0].x / 64);
+    camera.rotation.y = -1.5;
+
     var loader = new THREE.TextureLoader();
     loader.load('textures/walls.png', function (texture) {
+        var material = new THREE.MeshBasicMaterial({ map: texture, overdraw: 0.5 });
         for (let i = 0; i < map.layers[0].data.length; i++) {
             if (map.layers[0].data[i] != 0) {
                 var geometry = new THREE.CubeGeometry(1, 1, 1);
@@ -47,7 +46,7 @@ export function init(map: Map) {
                     geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
                 }
 
-                var material = new THREE.MeshBasicMaterial({ map: texture, overdraw: 0.5 });
+                
 
                 let x = i % map.layers[0].width;
                 let y = Math.floor(i / map.layers[0].width);
@@ -55,12 +54,14 @@ export function init(map: Map) {
                 mesh.translateX(x);
                 mesh.translateZ(y);
                 scene.add(mesh);
-                background.add(new THREE.Mesh(new THREE.CubeGeometry(2, 1, 1), new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, depthTest: false })));
+               
+            }
+        }
+
+         background.add(new THREE.Mesh(new THREE.CubeGeometry(2, 1, 1), new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, depthTest: false })));
                 let bottom = new THREE.Mesh(new THREE.CubeGeometry(2, 1, 1), new THREE.MeshBasicMaterial({ color: "#707070", overdraw: 0.5, depthTest: false }));
                 bottom.translateY(1);
                 background.add(bottom);
-            }
-        }
 
 
         animate();
@@ -79,13 +80,13 @@ export function animate() {
     requestAnimationFrame(animate);
     //  mesh.rotation.x += 0.01;
     //  mesh.rotation.y += 0.02;
-    let rotation = 0.05;
+    let rotation = 0.10;
     if (pressed[37])
         camera.rotateY(rotation);
     else if (pressed[39])
         camera.rotateY(-rotation);
 
-    let speed = 0.05;
+    let speed = 0.05*4;
     let v = new THREE.Vector3();
     if (pressed[38])
         camera.translateZ(-speed);
@@ -99,42 +100,3 @@ export function animate() {
 
 
 }
-/*
-var test = {
-    "height": 16,
-    "layers": [
-        {
-            "data": [1, 1, 1, 7, 1, 1, 0, 0, 15, 15, 15, 15, 15, 15, 0, 0, 1, 0, 0, 0, 0, 1, 15, 15, 15, 0, 0, 0, 0, 15, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 27, 0, 0, 15, 0, 0, 1, 0, 0, 0, 0, 1, 15, 15, 15, 0, 0, 0, 0, 15, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 15, 0, 0, 0, 0, 15, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 15, 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 15, 15, 0, 15, 15, 0, 0, 0, 33, 33, 33, 33, 33, 33, 0, 0, 0, 33, 0, 33, 0, 0, 0, 0, 33, 0, 0, 0, 0, 33, 0, 0, 0, 33, 0, 33, 0, 0, 0, 0, 33, 0, 105, 0, 0, 33, 33, 33, 33, 33, 0, 33, 0, 0, 0, 0, 33, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 33, 0, 0, 0, 0, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            "height": 16,
-            "name": "Tile Layer 1",
-            "opacity": 1,
-            "type": "tilelayer",
-            "visible": true,
-            "width": 16,
-            "x": 0,
-            "y": 0
-        }],
-    "nextobjectid": 1,
-    "orientation": "orthogonal",
-    "renderorder": "right-down",
-    "tiledversion": "1.0.1",
-    "tileheight": 64,
-    "tilesets": [
-        {
-            "columns": 6,
-            "firstgid": 1,
-            "image": "textures\/walls.png",
-            "imageheight": 1216,
-            "imagewidth": 384,
-            "margin": 0,
-            "name": "walls",
-            "spacing": 0,
-            "tilecount": 114,
-            "tileheight": 64,
-            "tilewidth": 64
-        }],
-    "tilewidth": 64,
-    "type": "map",
-    "version": 1,
-    "width": 16
-}*/
