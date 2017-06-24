@@ -69,10 +69,10 @@ export let defaultMap: any = { "height":64,
  "tilesets": [
         {
             "firstgid": 1,
-            "columns": 6,
+            "columns": 16,
             "image": "textures\/walls.png",
-            "imageheight": 1216,
-            "imagewidth": 384,
+            "imageheight": 1024,
+            "imagewidth": 1024,
             "tileheight": 64,
             "tilewidth": 64
         }],

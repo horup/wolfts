@@ -72,12 +72,13 @@ export function init(map: Map) {
         let material = new THREE.MeshBasicMaterial({ map: texture, overdraw: 0.5 });
         for (let i = 0; i < map.layers[0].data.length; i++) {
             if (map.layers[0].data[i] != 0) {
+                let px = 1.0 / map.tilesets[0].imagewidth;
                 let geometry = new THREE.CubeGeometry(1, 1, 1);
                 let tileset = map.tilesets[0];
-                let index = map.layers[0].data[i];
-                let tw = tileset.tilewidth / tileset.imagewidth;
+                let index = map.layers[0].data[i] - 1;
+                let tw = tileset.tilewidth / tileset.imagewidth - px;
                 let th = tileset.tileheight / tileset.imageheight;
-                let tx = (index % tileset.columns) / tileset.columns;
+                let tx = (index % tileset.columns) / tileset.columns + px / 2;
                 let ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
                 let uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
                 geometry.faceVertexUvs[0] = [];

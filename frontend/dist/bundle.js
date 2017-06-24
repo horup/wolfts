@@ -148,12 +148,13 @@ function init(map) {
         var material = new THREE.MeshBasicMaterial({ map: texture, overdraw: 0.5 });
         for (var i = 0; i < map.layers[0].data.length; i++) {
             if (map.layers[0].data[i] != 0) {
+                var px = 1.0 / map.tilesets[0].imagewidth;
                 var geometry_1 = new THREE.CubeGeometry(1, 1, 1);
                 var tileset = map.tilesets[0];
-                var index = map.layers[0].data[i];
-                var tw = tileset.tilewidth / tileset.imagewidth;
+                var index = map.layers[0].data[i] - 1;
+                var tw = tileset.tilewidth / tileset.imagewidth - px;
                 var th = tileset.tileheight / tileset.imageheight;
-                var tx = (index % tileset.columns) / tileset.columns;
+                var tx = (index % tileset.columns) / tileset.columns + px / 2;
                 var ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
                 var uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
                 geometry_1.faceVertexUvs[0] = [];
@@ -44372,10 +44373,10 @@ exports.defaultMap = { "height": 64,
     "tilesets": [
         {
             "firstgid": 1,
-            "columns": 6,
+            "columns": 16,
             "image": "textures\/walls.png",
-            "imageheight": 1216,
-            "imagewidth": 384,
+            "imageheight": 1024,
+            "imagewidth": 1024,
             "tileheight": 64,
             "tilewidth": 64
         }
