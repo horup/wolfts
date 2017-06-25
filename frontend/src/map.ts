@@ -19,6 +19,7 @@ export interface Object
 {
     x:number;
     y:number;
+    gid:number;
 }
 
 export interface Map {

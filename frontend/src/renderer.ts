@@ -66,18 +66,17 @@ export function init(map: Map) {
 
         animate();
     });*/
-
-    loader.load('textures/walls.png', function (texture) {
-        texture.magFilter = THREE.NearestFilter;
-        texture.minFilter = THREE.NearestFilter;
-        let mapGeometry = new THREE.Geometry();
-        let material = new THREE.MeshBasicMaterial({ map: texture, overdraw: 0.5 });
-        for (let i = 0; i < map.layers[0].data.length; i++) {
-            if (map.layers[0].data[i] != 0) {
-                let px = 1.0 / map.tilesets[0].imagewidth;
+    loader.load("textures/sprites.png", (spritesTextuure) => {
+        spritesTextuure.magFilter = THREE.NearestFilter;
+        spritesTextuure.minFilter = THREE.NearestFilter;
+        {
+            let material = new THREE.MeshBasicMaterial({ map: spritesTextuure, overdraw: 0.5, transparent: true, alphaTest: 0.5 });
+            for (let sprite of map.layers[1].objects)
+            {
+              /*  let px = 1.0 / map.tilesets[1].imagewidth;
                 let geometry = new THREE.CubeGeometry(1, 1, 1);
-                let tileset = map.tilesets[0];
-                let index = map.layers[0].data[i] - 1;
+                let tileset = map.tilesets[1];
+                let index = sprite.gid - 256 - 1;
                 let tw = tileset.tilewidth / tileset.imagewidth - px;
                 let th = tileset.tileheight / tileset.imageheight;
                 let tx = (index % tileset.columns) / tileset.columns + px / 2;
@@ -89,31 +88,93 @@ export function init(map: Map) {
                     geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
                 }
 
-                let x = i % map.layers[0].width;
-                let y = Math.floor(i / map.layers[0].width);
-                for (let vertice of geometry.vertices)
-                {
-                    vertice.x += x;
-                    vertice.z += y;
+                geometry.translate(sprite.x/64, 0, sprite.y/64);
+                var mesh = new THREE.Mesh(geometry, material);
+                scene.add(mesh);*/
+                let px = 1.0 / map.tilesets[1].imagewidth;
+                let geometry = new THREE.CubeGeometry(1, 1, 1);
+                let tileset = map.tilesets[1];
+                let index = sprite.gid - 256 - 1;
+                let tw = tileset.tilewidth / tileset.imagewidth - px;
+                let th = tileset.tileheight / tileset.imageheight;
+                let tx = (index % tileset.columns) / tileset.columns + px / 2;
+                let ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
+                let uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
+                geometry.faceVertexUvs[0] = [];
+                for (let i = 0; i < 6 * 2; i += 2) {
+                    geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
+                    geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
                 }
 
-                THREE.GeometryUtils.merge(mapGeometry, geometry);
+                geometry.translate(sprite.x/64, 0, sprite.y/64);
+                var mesh = new THREE.Mesh(geometry, material);
+
+                let tex = spritesTextuure.clone();
+                tex.uuid = spritesTextuure.uuid;
+
+                tex.offset.x = tx;
+                tex.offset.y = ty;
+                tex.repeat.x = 1/16;
+                tex.repeat.y = 1/16;
+                
+                                tex.needsUpdate = true;
+                let sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex}));
+                sp.translateX(sprite.x / 64);
+                sp.translateZ(sprite.y / 64);
+                scene.add(sp);
+                
+
             }
         }
 
+        {
+            loader.load('textures/walls.png', function (wallsTexture) {
+                wallsTexture.magFilter = THREE.NearestFilter;
+                wallsTexture.minFilter = THREE.NearestFilter;
+                let mapGeometry = new THREE.Geometry();
+                let material = new THREE.MeshBasicMaterial({ map: wallsTexture, overdraw: 0.5 });
+                for (let i = 0; i < map.layers[0].data.length; i++) {
+                    if (map.layers[0].data[i] != 0) {
+                        let px = 1.0 / map.tilesets[0].imagewidth;
+                        let geometry = new THREE.CubeGeometry(1, 1, 1);
+                        let tileset = map.tilesets[0];
+                        let index = map.layers[0].data[i] - 1;
+                        let tw = tileset.tilewidth / tileset.imagewidth - px;
+                        let th = tileset.tileheight / tileset.imageheight;
+                        let tx = (index % tileset.columns) / tileset.columns + px / 2;
+                        let ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
+                        let uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
+                        geometry.faceVertexUvs[0] = [];
+                        for (let i = 0; i < 6 * 2; i += 2) {
+                            geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
+                            geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
+                        }
 
-        console.log(mapGeometry);
+                        let x = i % map.layers[0].width;
+                        let y = Math.floor(i / map.layers[0].width);
+                        for (let vertice of geometry.vertices) {
+                            vertice.x += x;
+                            vertice.z += y;
+                        }
 
-        var mesh = new THREE.Mesh(mapGeometry, material);
-        scene.add(mesh);
+                        THREE.GeometryUtils.merge(mapGeometry, geometry);
+                    }
+                }
 
-         background.add(new THREE.Mesh(new THREE.CubeGeometry(2, 1, 1), new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, depthTest: false })));
+                console.log(mapGeometry);
+
+                var mesh = new THREE.Mesh(mapGeometry, material);
+                scene.add(mesh);
+
+                background.add(new THREE.Mesh(new THREE.CubeGeometry(2, 1, 1), new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, depthTest: false })));
                 let bottom = new THREE.Mesh(new THREE.CubeGeometry(2, 1, 1), new THREE.MeshBasicMaterial({ color: "#707070", overdraw: 0.5, depthTest: false }));
                 bottom.translateY(1);
                 background.add(bottom);
 
 
-        animate();
+                animate();
+            });
+        }
     });
 
 
@@ -146,6 +207,7 @@ export function animate() {
     renderer.clear();
     renderer.render(background, backgroundCamera);
     renderer.render(scene, camera);
-    console.log(new Date().getTime() - time + "ms");
+  //  console.log(new Date().getTime() - time + "ms");
+  console.log(renderer.info.memory);
 
 }
