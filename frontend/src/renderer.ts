@@ -68,6 +68,8 @@ export function init(map: Map) {
     });*/
 
     loader.load('textures/walls.png', function (texture) {
+        texture.magFilter = THREE.NearestFilter;
+        texture.minFilter = THREE.NearestFilter;
         let mapGeometry = new THREE.Geometry();
         let material = new THREE.MeshBasicMaterial({ map: texture, overdraw: 0.5 });
         for (let i = 0; i < map.layers[0].data.length; i++) {
@@ -127,7 +129,7 @@ export function animate() {
     requestAnimationFrame(animate);
     //  mesh.rotation.x += 0.01;
     //  mesh.rotation.y += 0.02;
-    let rotation = 0.10;
+    let rotation = 0.05;
     if (pressed[37])
         camera.rotateY(rotation);
     else if (pressed[39])
