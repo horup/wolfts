@@ -5,9 +5,50 @@ let background: THREE.Scene;
 let backgroundCamera: THREE.OrthographicCamera;
 var geometry, material, mesh;
 
+let mouseDown = false;
+let mouseX = 0;
+let mouseY = 0;
+let startMouseX = 0;
+let startMouseY = 0;
 let pressed = {};
 
 export function init(map: Map) {
+
+    document.body.onmousedown = (e) =>
+    {
+        mouseDown = true;
+        startMouseX = e.offsetX;
+        startMouseY = e.offsetY;
+        document.body.onmousemove(e);
+    }
+    document.body.onmouseup = (e) =>
+    {
+        mouseDown = false;
+    }
+    document.body.onmousemove = (e) =>
+    {
+        let x = e.offsetX - startMouseX;
+        let y = e.offsetY - startMouseY;
+        mouseX = x / document.body.clientWidth * 2;
+        mouseY = y / document.body.clientHeight * 2;
+        console.log(mouseY);
+    }
+
+    document.addEventListener('touchstart', (e)=>
+    {
+        document.body.onmousedown({offsetX:e.touches[0].clientX, offsetY:e.touches[0].clientY} as any);
+    });
+
+     document.addEventListener('touchmove', (e)=>
+    {
+        document.body.onmousemove({offsetX:e.touches[0].clientX, offsetY:e.touches[0].clientY} as any);
+    });
+
+    document.addEventListener('touchend', (e)=>
+    {
+        document.body.onmouseup({offsetX:0, offsetY:0} as any);
+    });
+
     document.body.onkeydown = (e) => {
         pressed[e.keyCode] = true;
         console.log(e.keyCode);
@@ -188,26 +229,30 @@ export function init(map: Map) {
 export function animate() {
     let time = new Date().getTime();
     requestAnimationFrame(animate);
-    //  mesh.rotation.x += 0.01;
-    //  mesh.rotation.y += 0.02;
-    let rotation = 0.05;
-    if (pressed[37])
-        camera.rotateY(rotation);
-    else if (pressed[39])
-        camera.rotateY(-rotation);
-
     let speed = 0.05*4;
-    let v = new THREE.Vector3();
-    if (pressed[38])
-        camera.translateZ(-speed);
-    else if (pressed[40])
-        camera.translateZ(speed);
+    let rotation = 0.05;
+    {
+        if (pressed[37])
+            camera.rotateY(rotation);
+        else if (pressed[39])
+            camera.rotateY(-rotation);
+
+        let v = new THREE.Vector3();
+        if (pressed[38])
+            camera.translateZ(-speed);
+        else if (pressed[40])
+            camera.translateZ(speed);
+    }
+    {
+        if (mouseDown)
+        {
+            camera.rotateY(rotation * -mouseX);
+            camera.translateZ(speed*mouseY);
+        }
+    }
 
     renderer.autoClear = false;
     renderer.clear();
     renderer.render(background, backgroundCamera);
     renderer.render(scene, camera);
-  //  console.log(new Date().getTime() - time + "ms");
-  console.log(renderer.info.memory);
-
 }

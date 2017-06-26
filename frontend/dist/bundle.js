@@ -87,8 +87,38 @@ var scene, camera, renderer;
 var background;
 var backgroundCamera;
 var geometry, material, mesh;
+var mouseDown = false;
+var mouseX = 0;
+var mouseY = 0;
+var startMouseX = 0;
+var startMouseY = 0;
 var pressed = {};
 function init(map) {
+    document.body.onmousedown = function (e) {
+        mouseDown = true;
+        startMouseX = e.offsetX;
+        startMouseY = e.offsetY;
+        document.body.onmousemove(e);
+    };
+    document.body.onmouseup = function (e) {
+        mouseDown = false;
+    };
+    document.body.onmousemove = function (e) {
+        var x = e.offsetX - startMouseX;
+        var y = e.offsetY - startMouseY;
+        mouseX = x / document.body.clientWidth * 2;
+        mouseY = y / document.body.clientHeight * 2;
+        console.log(mouseY);
+    };
+    document.addEventListener('touchstart', function (e) {
+        document.body.onmousedown({ offsetX: e.touches[0].clientX, offsetY: e.touches[0].clientY });
+    });
+    document.addEventListener('touchmove', function (e) {
+        document.body.onmousemove({ offsetX: e.touches[0].clientX, offsetY: e.touches[0].clientY });
+    });
+    document.addEventListener('touchend', function (e) {
+        document.body.onmouseup({ offsetX: 0, offsetY: 0 });
+    });
     document.body.onkeydown = function (e) {
         pressed[e.keyCode] = true;
         console.log(e.keyCode);
@@ -249,25 +279,29 @@ exports.init = init;
 function animate() {
     var time = new Date().getTime();
     requestAnimationFrame(animate);
-    //  mesh.rotation.x += 0.01;
-    //  mesh.rotation.y += 0.02;
-    var rotation = 0.05;
-    if (pressed[37])
-        camera.rotateY(rotation);
-    else if (pressed[39])
-        camera.rotateY(-rotation);
     var speed = 0.05 * 4;
-    var v = new THREE.Vector3();
-    if (pressed[38])
-        camera.translateZ(-speed);
-    else if (pressed[40])
-        camera.translateZ(speed);
+    var rotation = 0.05;
+    {
+        if (pressed[37])
+            camera.rotateY(rotation);
+        else if (pressed[39])
+            camera.rotateY(-rotation);
+        var v = new THREE.Vector3();
+        if (pressed[38])
+            camera.translateZ(-speed);
+        else if (pressed[40])
+            camera.translateZ(speed);
+    }
+    {
+        if (mouseDown) {
+            camera.rotateY(rotation * -mouseX);
+            camera.translateZ(speed * mouseY);
+        }
+    }
     renderer.autoClear = false;
     renderer.clear();
     renderer.render(background, backgroundCamera);
     renderer.render(scene, camera);
-    //  console.log(new Date().getTime() - time + "ms");
-    console.log(renderer.info.memory);
 }
 exports.animate = animate;
 
