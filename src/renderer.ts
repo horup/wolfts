@@ -1,5 +1,5 @@
 ﻿import * as THREE from 'three';
-import { Map } from './map';
+import * as Model from './model';
 var scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer;
 let background: THREE.Scene;
 let backgroundCamera: THREE.OrthographicCamera;
@@ -12,7 +12,7 @@ let startMouseX = 0;
 let startMouseY = 0;
 let pressed = {};
 
-export function init(map: Map) {
+export function init(map: Model.Map) {
 
     document.body.onmousedown = (e) =>
     {

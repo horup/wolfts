@@ -1,4 +1,4 @@
-﻿export interface Layer {
+export interface Layer {
     data: number[];
     width: number;
     height: number;
@@ -26,6 +26,8 @@ export interface Map {
     layers: Layer[];
     tilesets: Tileset[];
 }
+
+
 
 export let defaultMap: any = { "height":64,
  "layers":[

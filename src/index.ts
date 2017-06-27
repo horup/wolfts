@@ -1,4 +1,13 @@
 ﻿import * as renderer from './renderer';
-import * as Map from './map';
+import * as Model from './model';
+import * as $ from 'jquery';
 
-renderer.init(Map.defaultMap);
+function init()
+{
+    $.get('maps/e01m01.json').done((data:Model.Map) =>
+    {
+        renderer.init(data);
+    });
+}
+
+init();
