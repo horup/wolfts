@@ -1,6 +1,3 @@
-﻿/frontend/bin
-/frontend/node_modules
-/frontend/obj/Debug
-/frontend/frontend.njsproj.user
-/frontend/out
-/.vs
+﻿node_modules/
+out/
+.vs/
