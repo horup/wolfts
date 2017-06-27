@@ -1,6 +1,6 @@
 import * as Model from '../model'
 import * as $ from 'jquery';
-
+import * as Renderer from '../renderer';
 export default class System
 {
     world:Model.World;
@@ -15,20 +15,27 @@ export default class System
             grid.width = map.layers[0].width;
             grid.tiles = new Array(grid.height * grid.width);
             world.grid = grid;
-
             let data = map.layers[0].data;
+
             for (let i = 0; i < data.length; i++)
             {
                 grid.tiles[i] = data[i];
             }
 
-            for (let i = 0; i < map.layers[1].objects.length; i++)
+            let objects = map.layers[1].objects;
+            for (let obj of objects)
             {
-
+                let type = obj.gid - 256;
+                let entity = new Model.Entity();
+                entity.position = new Model.Position();
+                entity.position.position[0] = obj.x + 0.5;
+                entity.position.position[2] = obj.y + 0.5;
+                entity.sprite = new Model.Sprite();
+                entity.sprite.type = type;
+                world.entities.push(entity);
             }
             
             this.world = world;
-            console.log(this.world);
         });
     }
 }

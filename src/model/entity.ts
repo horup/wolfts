@@ -25,15 +25,16 @@ export class Creature
     animation:number = 0;
 }
 
-export class Item
+export class Sprite
 {
     type:ItemTypes = ItemTypes.Demo;
 }
+
 let nextId = 0;
 export class Entity
 {
     id:number = nextId++;
     position?:Position;
     Creature?:Creature;
-    Item?:Item;
+    sprite?:Sprite;
 }

@@ -15,7 +15,7 @@ export class Grid
 
 export class World
 {
-    map:Map;
-    grid:Grid;
-    entities:Entity[];
+    map:Map = null;
+    grid:Grid = new Grid();
+    entities:Entity[] = [];
 }
