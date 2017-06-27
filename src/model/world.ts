@@ -1,16 +1,21 @@
 import {Entity} from './entity';
+import {Map} from './map';
 
-export interface TileTypes
+export enum TileTypes
 {
     Void
 }
-export interface Tile
+
+export class Grid
 {
-    type:TileTypes;
+    width:number;
+    height:number;
+    tiles:TileTypes[];
 }
 
-export interface World
+export class World
 {
-    grid:Tile[][];
+    map:Map;
+    grid:Grid;
     entities:Entity[];
 }

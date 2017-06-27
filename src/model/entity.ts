@@ -1,10 +1,10 @@
-export interface Position
+export class Position
 {
-    radius:number;
-    position:number[];
-    velocity:number[];
-    facing:number;
-    solid:boolean;
+    radius:number = 0;
+    position:number[] = [0,0,0];
+    velocity:number[] = [0,0,0];
+    facing:number = 0;
+    solid:boolean = true;
 }
 
 export enum CreatureTypes
@@ -19,20 +19,20 @@ export enum ItemTypes
     DeathCam
 }
 
-export interface Creature
+export class Creature
 {
-    type:CreatureTypes;
-    animation:number;
+    type:CreatureTypes = CreatureTypes.Dog;
+    animation:number = 0;
 }
 
-export interface Item
+export class Item
 {
-    type:ItemTypes;
+    type:ItemTypes = ItemTypes.Demo;
 }
-
-export interface Entity
+let nextId = 0;
+export class Entity
 {
-    id:number;
+    id:number = nextId++;
     position?:Position;
     Creature?:Creature;
     Item?:Item;
