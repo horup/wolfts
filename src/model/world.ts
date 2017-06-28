@@ -1,21 +1,33 @@
 import {Entity} from './entity';
-import {Map} from './map';
+import {Level} from './map';
 
-export enum TileTypes
+export enum Tile
 {
     Void
 }
 
 export class Grid
 {
-    width:number;
-    height:number;
-    tiles:TileTypes[];
+    width:number = 0;
+    height:number = 0;
+    tiles:Tile[] = [];
+    
+    getTile(x:number, y:number)
+    {
+        let i = (x % this.width) + y * this.width;
+        return this.tiles[i];
+    }
+
+    setTile(x,y, type:Tile)
+    {
+        let i = (x % this.width) + y * this.width;
+        this.tiles[i] = type;
+    }
 }
 
 export class World
 {
-    map:Map = null;
+    map:Level = new Level();
     grid:Grid = new Grid();
     entities:Entity[] = [];
 }

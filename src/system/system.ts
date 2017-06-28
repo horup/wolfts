@@ -1,12 +1,13 @@
 import * as Model from '../model'
 import * as $ from 'jquery';
-import * as Renderer from '../renderer';
+import Flags from './flags';
 export default class System
 {
-    world:Model.World;
+    flags:Flags = new Flags();
+    world:Model.World = new Model.World();
     loadMap(url:string)
     {
-        $.get('maps/e01m01.json').done((map:Model.Map) =>
+        $.get('maps/e01m01.json').done((map:Model.Level) =>
         {
             let world = new Model.World();
             world.map = map;
@@ -36,6 +37,18 @@ export default class System
             }
             
             this.world = world;
+            this.flags.entitiesReload = true;
+            this.flags.gridReload = true;
         });
+    }
+
+    clearFlags()
+    {
+        this.flags.entitiesReload = false;
+        this.flags.gridReload = false;
+    }
+
+    update()
+    {
     }
 }

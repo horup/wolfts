@@ -1,11 +1,11 @@
-export interface Layer {
+export class Layer {
     data: number[];
     width: number;
     height: number;
-    objects?: Object[];
+    objects?: Obj[];
 }
 
-export interface Tileset {
+export class Tileset {
     firstgid: number;
     columns: number;
     imageheight: number;
@@ -15,16 +15,16 @@ export interface Tileset {
     tileheight: number;
 }
 
-export interface Object
+export class Obj
 {
     x:number;
     y:number;
     gid:number;
 }
 
-export interface Map {
-    layers: Layer[];
-    tilesets: Tileset[];
+export class Level {
+    layers: Layer[] = [];
+    tilesets: Tileset[] = [];
 }
 
 
