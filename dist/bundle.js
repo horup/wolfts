@@ -938,6 +938,11 @@ var System = (function () {
         this.flags.gridReload = false;
     };
     System.prototype.update = function () {
+        for (var _i = 0, _a = this.world.entities; _i < _a.length; _i++) {
+            var entity = _a[_i];
+            entity.spatial.position[0] += 0.01;
+        }
+        this.flags.entitiesReload = true;
     };
     return System;
 }());
@@ -11401,6 +11406,8 @@ var Renderer = (function () {
         this.renderer.render(this.entitiesScene, this.camera);
         requestAnimationFrame(function () { return _this.animate(); });
         this.system.clearFlags();
+        var elapsed = (new Date().getTime()) - time;
+        console.log(elapsed + "ms");
     };
     Renderer.prototype.init = function () {
         this.input = new input_1.default();
@@ -55538,8 +55545,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var THREE = __webpack_require__(11);
 var Model = __webpack_require__(4);
 function clearScene(scene) {
-    while (scene.children.length > 0)
+    while (scene.children.length > 0) {
+        var child = scene.children[0];
+        if (child.material != null) {
+            if (child.material.map != null) {
+                child.material.map.dispose();
+            }
+            child.material.dispose();
+        }
         scene.remove(scene.children[0]);
+    }
 }
 function syncFloor(world, scene) {
     var cealingMaterial = new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, side: THREE.DoubleSide });
@@ -55617,7 +55632,6 @@ function syncEntities(world, scene, spritesTexture) {
             scene.add(sp);
         }
     }
-    console.log(world.entities.length);
 }
 exports.syncEntities = syncEntities;
 

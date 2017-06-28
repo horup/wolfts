@@ -54,5 +54,11 @@ export default class System
 
     update()
     {
+        for (let entity of this.world.entities)
+        {
+            entity.spatial.position[0]+=0.01;
+        }
+
+        this.flags.entitiesReload = true;
     }
 }

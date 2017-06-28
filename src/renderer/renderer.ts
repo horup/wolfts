@@ -74,6 +74,8 @@ export default class Renderer
          this.renderer.render(this.entitiesScene, this.camera);
         requestAnimationFrame(()=>this.animate());
         this.system.clearFlags();
+        let elapsed = (new Date().getTime()) - time;
+        console.log(elapsed + "ms");
     }
 
     init()

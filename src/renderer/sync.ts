@@ -4,7 +4,19 @@ import * as Model from '../model';
 function clearScene(scene:THREE.Scene)
 {
     while (scene.children.length > 0)
+    {
+        let child = scene.children[0] as any;
+        if (child.material != null)
+        {
+            if (child.material.map != null)
+            {
+                child.material.map.dispose();
+            }
+
+            child.material.dispose();
+        }
         scene.remove(scene.children[0]);
+    }
 }
 
 function syncFloor(world:Model.World, scene:THREE.Scene)
@@ -97,6 +109,4 @@ export function syncEntities(world:Model.World, scene:THREE.Scene, spritesTextur
             scene.add(sp);
         }
     }
-
-    console.log(world.entities.length);
 }
