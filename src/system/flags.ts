@@ -1,5 +1,5 @@
 export default class Flags
 {
-    entitiesReload:boolean = false;
-    gridReload:boolean = false;
+    initEntities:boolean = false;
+    initGrid:boolean = false;
 }

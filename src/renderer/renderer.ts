@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import * as Model from '../model';
 import System from '../system';
-import * as Sync from './sync';
+import Sync from './sync';
 import Input from './input';
 
 export default class Renderer
 {
+    sync:Sync;
     input:Input;
     renderer:THREE.WebGLRenderer;
     camera:THREE.Camera;
@@ -52,14 +53,16 @@ export default class Renderer
         let world = this.system.world;
         let system = this.system;
 
-        if (system.flags.gridReload)
+        if (system.flags.initGrid)
         {
-            Sync.syncGrid(world, this.gridScene, this.textures.walls);
+            this.sync.initGrid(world, this.gridScene, this.textures.walls);
         }
-        if (system.flags.entitiesReload)
+        if (system.flags.initEntities)
         {
-            Sync.syncEntities(world, this.entitiesScene, this.textures.sprites);
+            this.sync.initEntities(world, this.entitiesScene, this.textures.sprites);
         }
+
+        this.sync.syncEntities(world);
     }
 
     private animate()
@@ -75,11 +78,12 @@ export default class Renderer
         requestAnimationFrame(()=>this.animate());
         this.system.clearFlags();
         let elapsed = (new Date().getTime()) - time;
-        console.log(elapsed + "ms");
+       // console.log(elapsed + "ms");
     }
 
     init()
     {
+        this.sync = new Sync();
         this.input = new Input();
         this.gridScene = new THREE.Scene();
         this.entitiesScene = new THREE.Scene();

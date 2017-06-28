@@ -923,26 +923,22 @@ var System = (function () {
                 entity.spatial.position[1] = -obj.y / map.tilesets[0].tileheight + 0.5;
                 entity.sprite = new Model.Sprite();
                 entity.sprite.type = type;
-                if (entity.sprite.type == 51) {
-                    console.log(entity);
-                }
                 world.entities.push(entity);
             }
             _this.world = world;
-            _this.flags.entitiesReload = true;
-            _this.flags.gridReload = true;
+            _this.flags.initEntities = true;
+            _this.flags.initGrid = true;
         });
     };
     System.prototype.clearFlags = function () {
-        this.flags.entitiesReload = false;
-        this.flags.gridReload = false;
+        this.flags.initEntities = false;
+        this.flags.initGrid = false;
     };
     System.prototype.update = function () {
         for (var _i = 0, _a = this.world.entities; _i < _a.length; _i++) {
             var entity = _a[_i];
             entity.spatial.position[0] += 0.01;
         }
-        this.flags.entitiesReload = true;
     };
     return System;
 }());
@@ -11327,8 +11323,8 @@ return jQuery;
 Object.defineProperty(exports, "__esModule", { value: true });
 var Flags = (function () {
     function Flags() {
-        this.entitiesReload = false;
-        this.gridReload = false;
+        this.initEntities = false;
+        this.initGrid = false;
     }
     return Flags;
 }());
@@ -11354,7 +11350,7 @@ exports.default = renderer_1.default;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var THREE = __webpack_require__(11);
-var Sync = __webpack_require__(12);
+var sync_1 = __webpack_require__(12);
 var input_1 = __webpack_require__(13);
 var Renderer = (function () {
     function Renderer(system) {
@@ -11387,12 +11383,13 @@ var Renderer = (function () {
     Renderer.prototype.syncScene = function () {
         var world = this.system.world;
         var system = this.system;
-        if (system.flags.gridReload) {
-            Sync.syncGrid(world, this.gridScene, this.textures.walls);
+        if (system.flags.initGrid) {
+            this.sync.initGrid(world, this.gridScene, this.textures.walls);
         }
-        if (system.flags.entitiesReload) {
-            Sync.syncEntities(world, this.entitiesScene, this.textures.sprites);
+        if (system.flags.initEntities) {
+            this.sync.initEntities(world, this.entitiesScene, this.textures.sprites);
         }
+        this.sync.syncEntities(world);
     };
     Renderer.prototype.animate = function () {
         var _this = this;
@@ -11407,9 +11404,10 @@ var Renderer = (function () {
         requestAnimationFrame(function () { return _this.animate(); });
         this.system.clearFlags();
         var elapsed = (new Date().getTime()) - time;
-        console.log(elapsed + "ms");
+        // console.log(elapsed + "ms");
     };
     Renderer.prototype.init = function () {
+        this.sync = new sync_1.default();
         this.input = new input_1.default();
         this.gridScene = new THREE.Scene();
         this.entitiesScene = new THREE.Scene();
@@ -55544,96 +55542,147 @@ function CanvasRenderer() {
 Object.defineProperty(exports, "__esModule", { value: true });
 var THREE = __webpack_require__(11);
 var Model = __webpack_require__(4);
-function clearScene(scene) {
-    while (scene.children.length > 0) {
-        var child = scene.children[0];
-        if (child.material != null) {
-            if (child.material.map != null) {
-                child.material.map.dispose();
-            }
-            child.material.dispose();
-        }
-        scene.remove(scene.children[0]);
+var Sync = (function () {
+    function Sync() {
     }
-}
-function syncFloor(world, scene) {
-    var cealingMaterial = new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, side: THREE.DoubleSide });
-    var floorMaterial = new THREE.MeshBasicMaterial({ color: "#707070", overdraw: 0.5, side: THREE.DoubleSide });
-    {
-        var geometry = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
-        geometry.translate(world.grid.width / 2, -world.grid.height / 2, 0);
-        var mesh = new THREE.Mesh(geometry, floorMaterial);
-        scene.add(mesh);
-    }
-    {
-        var geometry = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
-        geometry.translate(world.grid.width / 2, -world.grid.height / 2, 1);
-        var mesh = new THREE.Mesh(geometry, cealingMaterial);
-        scene.add(mesh);
-    }
-}
-function syncGrid(world, scene, tex) {
-    clearScene(scene);
-    syncFloor(world, scene);
-    var gridGeometry = new THREE.Geometry();
-    for (var y = 0; y < world.grid.height; y++) {
-        for (var x = 0; x < world.grid.width; x++) {
-            var tile = world.grid.getTile(x, y);
-            if (tile != Model.Tile.Void) {
-                var px = 1.0 / world.map.tilesets[0].imagewidth;
-                var geometry = new THREE.CubeGeometry(1, 1, 1);
-                var tileset = world.map.tilesets[0];
-                var index = tile;
-                var tw = tileset.tilewidth / tileset.imagewidth - px;
-                var th = tileset.tileheight / tileset.imageheight;
-                var tx = (index % tileset.columns) / tileset.columns + px / 2;
-                var ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
-                var uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
-                geometry.faceVertexUvs[0] = [];
-                for (var i = 0; i < 6 * 2; i += 2) {
-                    geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
-                    geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
+    Sync.prototype.clearScene = function (scene) {
+        while (scene.children.length > 0) {
+            var child = scene.children[0];
+            if (child.material != null) {
+                if (child.material.map != null) {
+                    child.material.map.dispose();
                 }
-                geometry.rotateX(Math.PI / 2);
-                geometry.translate(x + 0.5, -y - 0.5, 0.5);
-                gridGeometry.merge(geometry, new THREE.Matrix4());
+                child.material.dispose();
+            }
+            scene.remove(scene.children[0]);
+        }
+    };
+    Sync.prototype.initFloor = function (world, scene) {
+        var cealingMaterial = new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, side: THREE.DoubleSide });
+        var floorMaterial = new THREE.MeshBasicMaterial({ color: "#707070", overdraw: 0.5, side: THREE.DoubleSide });
+        {
+            var geometry = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
+            geometry.translate(world.grid.width / 2, -world.grid.height / 2, 0);
+            var mesh = new THREE.Mesh(geometry, floorMaterial);
+            scene.add(mesh);
+        }
+        {
+            var geometry = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
+            geometry.translate(world.grid.width / 2, -world.grid.height / 2, 1);
+            var mesh = new THREE.Mesh(geometry, cealingMaterial);
+            scene.add(mesh);
+        }
+    };
+    Sync.prototype.initGrid = function (world, scene, tex) {
+        this.clearScene(scene);
+        this.initFloor(world, scene);
+        var gridGeometry = new THREE.Geometry();
+        for (var y = 0; y < world.grid.height; y++) {
+            for (var x = 0; x < world.grid.width; x++) {
+                var tile = world.grid.getTile(x, y);
+                if (tile != Model.Tile.Void) {
+                    var px = 1.0 / world.map.tilesets[0].imagewidth;
+                    var geometry = new THREE.CubeGeometry(1, 1, 1);
+                    var tileset = world.map.tilesets[0];
+                    var index = tile;
+                    var tw = tileset.tilewidth / tileset.imagewidth - px;
+                    var th = tileset.tileheight / tileset.imageheight;
+                    var tx = (index % tileset.columns) / tileset.columns + px / 2;
+                    var ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
+                    var uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
+                    geometry.faceVertexUvs[0] = [];
+                    for (var i = 0; i < 6 * 2; i += 2) {
+                        geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
+                        geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
+                    }
+                    geometry.rotateX(Math.PI / 2);
+                    geometry.translate(x + 0.5, -y - 0.5, 0.5);
+                    gridGeometry.merge(geometry, new THREE.Matrix4());
+                }
             }
         }
-    }
-    var gridMaterial = new THREE.MeshBasicMaterial({ map: tex, overdraw: 0.5 });
-    var mesh = new THREE.Mesh(gridGeometry, gridMaterial);
-    scene.add(mesh);
-}
-exports.syncGrid = syncGrid;
-function syncEntities(world, scene, spritesTexture) {
-    clearScene(scene);
-    for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
-        var entity = _a[_i];
-        var spatial = entity.spatial;
-        var sprite = entity.sprite;
-        if (sprite != null && spatial != null) {
-            var index = sprite.type;
-            var columns = 16;
-            var tw = 1 / columns;
-            var th = 1 / columns;
-            var tx = (index % columns) / columns;
-            var ty = 1.0 - th - Math.floor(index / columns) * th;
+        var gridMaterial = new THREE.MeshBasicMaterial({ map: tex, overdraw: 0.5 });
+        var mesh = new THREE.Mesh(gridGeometry, gridMaterial);
+        scene.add(mesh);
+    };
+    Sync.prototype.initEntities = function (world, scene, spritesTexture) {
+        this.clearScene(scene);
+        this.sprites = [];
+        for (var i = 0; i < 64; i++) {
             var tex = spritesTexture.clone();
             tex.uuid = tex.uuid;
-            tex.repeat.x = tw;
-            tex.repeat.y = th;
-            tex.offset.x = tx;
-            tex.offset.y = ty;
             tex.needsUpdate = true;
             var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex }));
-            sp.translateX(spatial.position[0]);
-            sp.translateY(spatial.position[1]);
-            sp.translateZ(0.5);
+            sp.visible = true;
+            this.sprites.push(sp);
             scene.add(sp);
         }
-    }
-}
-exports.syncEntities = syncEntities;
+        /*for (let entity of world.entities)
+        {
+            let spatial = entity.spatial;
+            let sprite = entity.sprite;
+            if (sprite != null && spatial != null)
+            {
+                let index = sprite.type;
+                let columns = 16;
+                let tw = 1 / columns;
+                let th = 1 / columns;
+                let tx = (index % columns) / columns;
+                let ty = 1.0 - th - Math.floor(index / columns) * th;
+                let tex = spritesTexture.clone();
+                tex.uuid = tex.uuid;
+                tex.repeat.x = tw;
+                tex.repeat.y =  th;
+                tex.offset.x = tx;
+                tex.offset.y = ty;
+                tex.needsUpdate = true;
+
+                let sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex}));
+                sp.visible = false;
+                sp.translateX(spatial.position[0]);
+                sp.translateY(spatial.position[1]);
+                sp.translateZ(0.5);
+                scene.add(sp);
+            }
+        }*/
+    };
+    Sync.prototype.syncEntities = function (world) {
+        for (var _i = 0, _a = this.sprites; _i < _a.length; _i++) {
+            var sprite = _a[_i];
+            //   sprite.visible = false;
+        }
+        var i = 0;
+        for (var _b = 0, _c = world.entities; _b < _c.length; _b++) {
+            var entity = _c[_b];
+            var spatial = entity.spatial;
+            var sprite = entity.sprite;
+            if (sprite != null && spatial != null) {
+                if (i < this.sprites.length) {
+                    var sp = this.sprites[i];
+                    var index = sprite.type;
+                    var columns = 16;
+                    var tw = 1 / columns;
+                    var th = 1 / columns;
+                    var tx = (index % columns) / columns;
+                    var ty = 1.0 - th - Math.floor(index / columns) * th;
+                    var tex = this.sprites[i].material.map;
+                    tex.uuid = tex.uuid;
+                    tex.repeat.x = tw;
+                    tex.repeat.y = th;
+                    tex.offset.x = tx;
+                    tex.offset.y = ty;
+                    sp.position.set(spatial.position[0], spatial.position[1], 0.5);
+                }
+                else {
+                    console.log("exceeding sprite limit of " + this.sprites.length);
+                }
+                i++;
+            }
+        }
+    };
+    return Sync;
+}());
+exports.default = Sync;
 
 
 /***/ }),

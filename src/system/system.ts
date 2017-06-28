@@ -33,23 +33,19 @@ export default class System
                 entity.spatial.position[1] = -obj.y / map.tilesets[0].tileheight + 0.5;
                 entity.sprite = new Model.Sprite();
                 entity.sprite.type = type;
-                if (entity.sprite.type == 51)
-                {
-                    console.log(entity);
-                }
                 world.entities.push(entity);
             }
             
             this.world = world;
-            this.flags.entitiesReload = true;
-            this.flags.gridReload = true;
+            this.flags.initEntities = true;
+            this.flags.initGrid = true;
         });
     }
 
     clearFlags()
     {
-        this.flags.entitiesReload = false;
-        this.flags.gridReload = false;
+        this.flags.initEntities = false;
+        this.flags.initGrid = false;
     }
 
     update()
@@ -58,7 +54,5 @@ export default class System
         {
             entity.spatial.position[0]+=0.01;
         }
-
-        this.flags.entitiesReload = true;
     }
 }
