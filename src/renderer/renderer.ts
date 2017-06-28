@@ -67,9 +67,10 @@ export default class Renderer
 
     private animate()
     {
-        this.input.handle(this.camera);
+        this.input.handle();
+        this.system.update(this.input.state);
         this.sync.syncCamera(this.camera);
-        this.system.update();
+
         this.syncScene();
         let time = new Date().getTime();
         this.renderer.autoClear = false;

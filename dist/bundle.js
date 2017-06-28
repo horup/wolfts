@@ -45061,9 +45061,9 @@ var Renderer = (function () {
     };
     Renderer.prototype.animate = function () {
         var _this = this;
-        this.input.handle(this.camera);
+        this.input.handle();
+        this.system.update(this.input.state);
         this.sync.syncCamera(this.camera);
-        this.system.update();
         this.syncScene();
         var time = new Date().getTime();
         this.renderer.autoClear = false;
@@ -45221,8 +45221,12 @@ var Sync = (function () {
     Sync.prototype.syncCamera = function (camera) {
         if (this.attachedEntity != null) {
             var spatial = this.attachedEntity.spatial;
+            var v = new THREE.Vector3(Math.cos(spatial.facing), Math.sin(spatial.facing));
             camera.position.x = spatial.position[0];
             camera.position.y = spatial.position[1];
+            var front = new THREE.Vector3(spatial.position[0], spatial.position[1], 0.5);
+            front.add(v);
+            camera.lookAt(front);
         }
     };
     return Sync;
@@ -45331,9 +45335,11 @@ exports.World = World;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var THREE = __webpack_require__(0);
+var inputstate_1 = __webpack_require__(14);
 var Input = (function () {
     function Input() {
         var _this = this;
+        this.state = new inputstate_1.default();
         this.pressed = {};
         this.mouseDown = false;
         this.startMouseX = 0;
@@ -45371,22 +45377,26 @@ var Input = (function () {
             _this.pressed[e.keyCode] = false;
         };
     }
-    Input.prototype.handle = function (camera) {
-        var speed = 0.05 * 4;
+    Input.prototype.handle = function () {
         var rotation = 0.05;
         if (this.pressed[37])
-            camera.rotateY(rotation);
+            this.state.angleZ += rotation;
         else if (this.pressed[39])
-            camera.rotateY(-rotation);
+            this.state.angleZ -= rotation;
         var v = new THREE.Vector3();
+        var dir = 0;
         if (this.pressed[38])
-            camera.translateZ(-speed);
+            dir = 1;
         else if (this.pressed[40])
-            camera.translateZ(speed);
+            dir = -1;
         if (this.mouseDown) {
-            camera.rotateZ(rotation * -this.mouseX);
-            camera.translateZ(speed * this.mouseY);
+            this.state.angleZ += (rotation * -this.mouseX);
+            dir = -this.mouseY;
         }
+        var vx = Math.cos(this.state.angleZ) * dir;
+        var vy = Math.sin(this.state.angleZ) * dir;
+        this.state.movement[0] = vx;
+        this.state.movement[1] = vy;
     };
     return Input;
 }());
@@ -45454,10 +45464,17 @@ var System = (function () {
         this.flags.initEntities = false;
         this.flags.initGrid = false;
     };
-    System.prototype.update = function () {
+    System.prototype.update = function (inputstate) {
         for (var _i = 0, _a = this.world.entities; _i < _a.length; _i++) {
             var entity = _a[_i];
-            //  entity.spatial.position[0]+=0.01;
+            if (entity.sprite != null && entity.sprite.type == 50) {
+                var speed = 0.05;
+                entity.spatial.facing = inputstate.angleZ;
+                var vx = inputstate.movement[0] * speed;
+                var vy = inputstate.movement[1] * speed;
+                entity.spatial.position[0] += vx;
+                entity.spatial.position[1] += vy;
+            }
         }
     };
     return System;
@@ -55740,6 +55757,23 @@ var Flags = (function () {
     return Flags;
 }());
 exports.default = Flags;
+
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var InputState = (function () {
+    function InputState() {
+        this.angleZ = 0;
+        this.movement = [0, 0];
+    }
+    return InputState;
+}());
+exports.default = InputState;
 
 
 /***/ })

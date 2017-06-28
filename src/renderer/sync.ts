@@ -153,8 +153,12 @@ export default class Sync
         if (this.attachedEntity != null)
         {
             let spatial = this.attachedEntity.spatial;
+            let v = new THREE.Vector3(Math.cos(spatial.facing), Math.sin(spatial.facing));
             camera.position.x = spatial.position[0];
             camera.position.y = spatial.position[1];
+            let front = new THREE.Vector3(spatial.position[0], spatial.position[1], 0.5);
+            front.add(v);
+            camera.lookAt(front);
         }
     }
 }

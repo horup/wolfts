@@ -1,7 +1,9 @@
 import * as THREE from 'three';
+import InputState from '../system/inputstate';
 
 export default class Input
 {
+    state:InputState = new InputState();
     pressed = {};
     mouseDown:boolean = false;
     startMouseX:number = 0;
@@ -52,24 +54,31 @@ export default class Input
         }
     }
 
-    handle(camera:THREE.Camera)
+    handle()
     {
-        let speed = 0.05*4;
         let rotation = 0.05;
         if (this.pressed[37])
-            camera.rotateY(rotation);
+            this.state.angleZ += rotation;
         else if (this.pressed[39])
-            camera.rotateY(-rotation);
+            this.state.angleZ -= rotation;
+
 
         let v = new THREE.Vector3();
+        let dir = 0;
         if (this.pressed[38])
-            camera.translateZ(-speed);
+            dir = 1
         else if (this.pressed[40])
-            camera.translateZ(speed);
+            dir = -1;
+
         if (this.mouseDown)
         {
-            camera.rotateZ(rotation * -this.mouseX);
-            camera.translateZ(speed*this.mouseY);
+            this.state.angleZ += (rotation * -this.mouseX);
+            dir = -this.mouseY;
         }
+
+        let vx = Math.cos(this.state.angleZ) * dir;
+        let vy = Math.sin(this.state.angleZ) * dir;
+        this.state.movement[0] = vx;
+        this.state.movement[1] = vy;
     }
 }
