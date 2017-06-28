@@ -2,6 +2,7 @@ import * as Model from '../model'
 import * as $ from 'jquery';
 import Flags from './flags';
 import InputState from './inputstate';
+import Physics from './physics';
 
 export default class System
 {
@@ -52,17 +53,6 @@ export default class System
 
     update(inputstate:InputState)
     {
-        for (let entity of this.world.entities)
-        {
-            if (entity.sprite != null && entity.sprite.type == 50)
-            {
-                let speed = 0.05;
-                entity.spatial.facing = inputstate.angleZ;
-                let vx = inputstate.movement[0] * speed;
-                let vy = inputstate.movement[1] * speed;
-                entity.spatial.position[0] += vx;
-                entity.spatial.position[1] += vy;
-            }
-        }
+        Physics.update(this.world, inputstate);
     }
 }

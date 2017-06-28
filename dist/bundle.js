@@ -45424,6 +45424,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var Model = __webpack_require__(2);
 var $ = __webpack_require__(12);
 var flags_1 = __webpack_require__(13);
+var physics_1 = __webpack_require__(15);
 var System = (function () {
     function System() {
         this.flags = new flags_1.default();
@@ -45465,17 +45466,7 @@ var System = (function () {
         this.flags.initGrid = false;
     };
     System.prototype.update = function (inputstate) {
-        for (var _i = 0, _a = this.world.entities; _i < _a.length; _i++) {
-            var entity = _a[_i];
-            if (entity.sprite != null && entity.sprite.type == 50) {
-                var speed = 0.05;
-                entity.spatial.facing = inputstate.angleZ;
-                var vx = inputstate.movement[0] * speed;
-                var vy = inputstate.movement[1] * speed;
-                entity.spatial.position[0] += vx;
-                entity.spatial.position[1] += vy;
-            }
-        }
+        physics_1.default.update(this.world, inputstate);
     };
     return System;
 }());
@@ -55774,6 +55765,46 @@ var InputState = (function () {
     return InputState;
 }());
 exports.default = InputState;
+
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var Physics = (function () {
+    function Physics() {
+    }
+    Physics.updateInput = function (world, inputstate) {
+        for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
+            var entity = _a[_i];
+            if (entity.sprite != null && entity.spatial != null && entity.sprite.type == 50) {
+                entity.spatial.facing = inputstate.angleZ;
+                ;
+                var speed = 0.1;
+                entity.spatial.facing = inputstate.angleZ;
+                var vx = inputstate.movement[0] * speed;
+                var vy = inputstate.movement[1] * speed;
+                entity.spatial.velocity[0] = vx;
+                entity.spatial.velocity[1] = vy;
+            }
+        }
+    };
+    Physics.update = function (world, inputstate) {
+        this.updateInput(world, inputstate);
+        for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
+            var entity = _a[_i];
+            if (entity.spatial != null) {
+                entity.spatial.position[0] += entity.spatial.velocity[0];
+                entity.spatial.position[1] += entity.spatial.velocity[1];
+            }
+        }
+    };
+    return Physics;
+}());
+exports.default = Physics;
 
 
 /***/ })
