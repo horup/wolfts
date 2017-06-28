@@ -51,7 +51,7 @@ export default class Sync
         {
             for (let x = 0; x < world.grid.width; x++)
             {
-                let tile = world.grid.getTile(x, y);
+                let tile = world.grid.getTile(x, -y);
                 if (tile != Model.Tile.Void)
                 {
                     let px = 1.0 / world.map.tilesets[0].imagewidth;

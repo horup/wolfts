@@ -45141,7 +45141,7 @@ var Sync = (function () {
         var gridGeometry = new THREE.Geometry();
         for (var y = 0; y < world.grid.height; y++) {
             for (var x = 0; x < world.grid.width; x++) {
-                var tile = world.grid.getTile(x, y);
+                var tile = world.grid.getTile(x, -y);
                 if (tile != Model.Tile.Void) {
                     var px = 1.0 / world.map.tilesets[0].imagewidth;
                     var geometry = new THREE.CubeGeometry(1, 1, 1);
@@ -45306,12 +45306,22 @@ var Grid = (function () {
         this.tiles = [];
     }
     Grid.prototype.getTile = function (x, y) {
+        x = Math.floor(x);
+        y = Math.floor(-y);
         var i = (x % this.width) + y * this.width;
+        if (i < 0 || i >= this.tiles.length)
+            return Tile.Void;
         return this.tiles[i];
     };
     Grid.prototype.setTile = function (x, y, type) {
+        x = Math.floor(x);
+        y = Math.floor(y);
         var i = (x % this.width) + y * this.width;
         this.tiles[i] = type;
+    };
+    Grid.prototype.getSolid = function (x, y) {
+        var solid = this.getTile(x, y) != Tile.Void;
+        return solid;
     };
     return Grid;
 }());
@@ -45443,6 +45453,8 @@ var System = (function () {
             var data = map.layers[0].data;
             for (var i = 0; i < data.length; i++) {
                 grid.tiles[i] = data[i] - 1;
+                if (grid.tiles[i] == 98)
+                    grid.tiles[i] = -1;
             }
             var objects = map.layers[1].objects;
             for (var _i = 0, objects_1 = objects; _i < objects_1.length; _i++) {
@@ -55797,8 +55809,23 @@ var Physics = (function () {
         for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
             var entity = _a[_i];
             if (entity.spatial != null) {
+                var vx = entity.spatial.velocity[0];
+                var vy = entity.spatial.velocity[1];
+                var x = entity.spatial.position[0];
+                var y = entity.spatial.position[1];
+                var newX = x + vx;
+                if (!world.grid.getSolid(newX, y)) {
+                    x = newX;
+                }
+                var newY = y + vy;
+                if (!world.grid.getSolid(x, newY)) {
+                    y = newY;
+                }
+                entity.spatial.position[0] = x;
+                entity.spatial.position[1] = y;
+                /*
                 entity.spatial.position[0] += entity.spatial.velocity[0];
-                entity.spatial.position[1] += entity.spatial.velocity[1];
+                entity.spatial.position[1] += entity.spatial.velocity[1];*/
             }
         }
     };

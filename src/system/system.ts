@@ -24,6 +24,8 @@ export default class System
             for (let i = 0; i < data.length; i++)
             {
                 grid.tiles[i] = data[i] - 1;
+                if (grid.tiles[i] == 98)
+                    grid.tiles[i] = -1;
             }
 
             let objects = map.layers[1].objects;

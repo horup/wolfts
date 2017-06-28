@@ -14,14 +14,29 @@ export class Grid
     
     getTile(x:number, y:number)
     {
+        x = Math.floor(x);
+        y = Math.floor(-y);
+        
         let i = (x % this.width) + y * this.width;
+        if (i < 0 || i >= this.tiles.length)
+            return Tile.Void;
+            
         return this.tiles[i];
     }
 
-    setTile(x,y, type:Tile)
+    setTile(x:number,y:number, type:Tile)
     {
+        x = Math.floor(x);
+        y = Math.floor(y);
+
         let i = (x % this.width) + y * this.width;
         this.tiles[i] = type;
+    }
+
+    getSolid(x:number,y:number)
+    {
+        let solid = this.getTile(x,y) != Tile.Void;
+        return solid;
     }
 }
 
