@@ -68,17 +68,24 @@ export default class Renderer
     private animate()
     {
         this.input.handle(this.camera);
+        this.sync.syncCamera(this.camera);
         this.system.update();
         this.syncScene();
         let time = new Date().getTime();
         this.renderer.autoClear = false;
         this.renderer.clear();
         this.renderer.render(this.gridScene, this.camera);
-         this.renderer.render(this.entitiesScene, this.camera);
+        this.renderer.render(this.entitiesScene, this.camera);
         requestAnimationFrame(()=>this.animate());
         this.system.clearFlags();
         let elapsed = (new Date().getTime()) - time;
-       // console.log(elapsed + "ms");
+    }
+
+    private attachedEntity:Model.Entity = null;
+
+    private attachCamera(entity:Model.Entity)
+    {
+
     }
 
     init()

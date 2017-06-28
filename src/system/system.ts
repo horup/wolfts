@@ -52,7 +52,7 @@ export default class System
     {
         for (let entity of this.world.entities)
         {
-            entity.spatial.position[0]+=0.01;
+          //  entity.spatial.position[0]+=0.01;
         }
     }
 }

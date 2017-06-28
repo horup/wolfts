@@ -3,6 +3,7 @@ import * as Model from '../model';
 
 export default class Sync
 {
+    attachedEntity:Model.Entity = null;
     clearScene(scene:THREE.Scene)
     {
         while (scene.children.length > 0)
@@ -98,42 +99,13 @@ export default class Sync
             this.sprites.push(sp);
             scene.add(sp);
         }
-
-        /*for (let entity of world.entities)
-        {
-            let spatial = entity.spatial;
-            let sprite = entity.sprite;
-            if (sprite != null && spatial != null)
-            {
-                let index = sprite.type;
-                let columns = 16;
-                let tw = 1 / columns;
-                let th = 1 / columns;
-                let tx = (index % columns) / columns;
-                let ty = 1.0 - th - Math.floor(index / columns) * th;
-                let tex = spritesTexture.clone();
-                tex.uuid = tex.uuid;
-                tex.repeat.x = tw;
-                tex.repeat.y =  th;
-                tex.offset.x = tx;
-                tex.offset.y = ty;
-                tex.needsUpdate = true;
-
-                let sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex}));
-                sp.visible = false;
-                sp.translateX(spatial.position[0]);
-                sp.translateY(spatial.position[1]);
-                sp.translateZ(0.5);
-                scene.add(sp);
-            }
-        }*/
     }
 
     syncEntities(world:Model.World)
     {
         for (let sprite of this.sprites)
         {
-         //   sprite.visible = false;
+            sprite.visible = false;
         }
 
         let i = 0;
@@ -146,7 +118,7 @@ export default class Sync
                 if (i < this.sprites.length)
                 {
                     let sp = this.sprites[i];
-                   let index = sprite.type;
+                    let index = sprite.type;
                     let columns = 16;
                     let tw = 1 / columns;
                     let th = 1 / columns;
@@ -158,9 +130,8 @@ export default class Sync
                     tex.repeat.y =  th;
                     tex.offset.x = tx;
                     tex.offset.y = ty;
-                    
+                    sp.visible = true;
                     sp.position.set(spatial.position[0], spatial.position[1], 0.5);
-
                 }
                 else
                 {
@@ -169,6 +140,21 @@ export default class Sync
                 
                 i++;
             }
+
+            if (sprite.type == 50)
+            {
+                this.attachedEntity = entity;
+            }
+        }
+    }
+
+    syncCamera(camera:THREE.Camera)
+    {
+        if (this.attachedEntity != null)
+        {
+            let spatial = this.attachedEntity.spatial;
+            camera.position.x = spatial.position[0];
+            camera.position.y = spatial.position[1];
         }
     }
 }
