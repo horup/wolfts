@@ -911,18 +911,21 @@ var System = (function () {
             world.grid = grid;
             var data = map.layers[0].data;
             for (var i = 0; i < data.length; i++) {
-                grid.tiles[i] = data[i];
+                grid.tiles[i] = data[i] - 1;
             }
             var objects = map.layers[1].objects;
             for (var _i = 0, objects_1 = objects; _i < objects_1.length; _i++) {
                 var obj = objects_1[_i];
-                var type = obj.gid - 256;
+                var type = obj.gid - 256 - 1;
                 var entity = new Model.Entity();
-                entity.position = new Model.Position();
-                entity.position.position[0] = obj.x + 0.5;
-                entity.position.position[2] = obj.y + 0.5;
+                entity.spatial = new Model.Spatial();
+                entity.spatial.position[0] = obj.x / map.tilesets[0].tilewidth + 0.5;
+                entity.spatial.position[1] = -obj.y / map.tilesets[0].tileheight + 0.5;
                 entity.sprite = new Model.Sprite();
                 entity.sprite.type = type;
+                if (entity.sprite.type == 51) {
+                    console.log(entity);
+                }
                 world.entities.push(entity);
             }
             _this.world = world;
@@ -964,17 +967,17 @@ __export(__webpack_require__(0));
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var Position = (function () {
-    function Position() {
+var Spatial = (function () {
+    function Spatial() {
         this.radius = 0;
         this.position = [0, 0, 0];
         this.velocity = [0, 0, 0];
         this.facing = 0;
         this.solid = true;
     }
-    return Position;
+    return Spatial;
 }());
-exports.Position = Position;
+exports.Spatial = Spatial;
 var CreatureTypes;
 (function (CreatureTypes) {
     CreatureTypes[CreatureTypes["Dog"] = 0] = "Dog";
@@ -1020,7 +1023,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var map_1 = __webpack_require__(0);
 var Tile;
 (function (Tile) {
-    Tile[Tile["Void"] = 0] = "Void";
+    Tile[Tile["Void"] = -1] = "Void";
 })(Tile = exports.Tile || (exports.Tile = {}));
 var Grid = (function () {
     function Grid() {
@@ -11382,6 +11385,9 @@ var Renderer = (function () {
         if (system.flags.gridReload) {
             Sync.syncGrid(world, this.gridScene, this.textures.walls);
         }
+        if (system.flags.entitiesReload) {
+            Sync.syncEntities(world, this.entitiesScene, this.textures.sprites);
+        }
     };
     Renderer.prototype.animate = function () {
         var _this = this;
@@ -11392,6 +11398,7 @@ var Renderer = (function () {
         this.renderer.autoClear = false;
         this.renderer.clear();
         this.renderer.render(this.gridScene, this.camera);
+        this.renderer.render(this.entitiesScene, this.camera);
         requestAnimationFrame(function () { return _this.animate(); });
         this.system.clearFlags();
     };
@@ -11402,6 +11409,8 @@ var Renderer = (function () {
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
         this.camera.up.set(0, 0, 1);
         this.camera.translateZ(0.5);
+        this.camera.translateX(30.5);
+        this.camera.translateY(-54.5);
         this.camera.lookAt(new THREE.Vector3(32, -32, 0.5));
         this.initTextures();
     };
@@ -55558,7 +55567,6 @@ function syncGrid(world, scene, tex) {
             if (tile != Model.Tile.Void) {
                 var px = 1.0 / world.map.tilesets[0].imagewidth;
                 var geometry = new THREE.CubeGeometry(1, 1, 1);
-                geometry.translate(0, 0, 0.5);
                 var tileset = world.map.tilesets[0];
                 var index = tile;
                 var tw = tileset.tilewidth / tileset.imagewidth - px;
@@ -55571,11 +55579,8 @@ function syncGrid(world, scene, tex) {
                     geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
                     geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
                 }
-                for (var _i = 0, _a = geometry.vertices; _i < _a.length; _i++) {
-                    var vertice = _a[_i];
-                    vertice.x += x;
-                    vertice.y -= y;
-                }
+                geometry.rotateX(Math.PI / 2);
+                geometry.translate(x + 0.5, -y - 0.5, 0.5);
                 gridGeometry.merge(geometry, new THREE.Matrix4());
             }
         }
@@ -55585,6 +55590,36 @@ function syncGrid(world, scene, tex) {
     scene.add(mesh);
 }
 exports.syncGrid = syncGrid;
+function syncEntities(world, scene, spritesTexture) {
+    clearScene(scene);
+    for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
+        var entity = _a[_i];
+        var spatial = entity.spatial;
+        var sprite = entity.sprite;
+        if (sprite != null && spatial != null) {
+            var index = sprite.type;
+            var columns = 16;
+            var tw = 1 / columns;
+            var th = 1 / columns;
+            var tx = (index % columns) / columns;
+            var ty = 1.0 - th - Math.floor(index / columns) * th;
+            var tex = spritesTexture.clone();
+            tex.uuid = tex.uuid;
+            tex.repeat.x = tw;
+            tex.repeat.y = th;
+            tex.offset.x = tx;
+            tex.offset.y = ty;
+            tex.needsUpdate = true;
+            var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex }));
+            sp.translateX(spatial.position[0]);
+            sp.translateY(spatial.position[1]);
+            sp.translateZ(0.5);
+            scene.add(sp);
+        }
+    }
+    console.log(world.entities.length);
+}
+exports.syncEntities = syncEntities;
 
 
 /***/ }),

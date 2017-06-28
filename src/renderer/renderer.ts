@@ -56,6 +56,10 @@ export default class Renderer
         {
             Sync.syncGrid(world, this.gridScene, this.textures.walls);
         }
+        if (system.flags.entitiesReload)
+        {
+            Sync.syncEntities(world, this.entitiesScene, this.textures.sprites);
+        }
     }
 
     private animate()
@@ -67,6 +71,7 @@ export default class Renderer
         this.renderer.autoClear = false;
         this.renderer.clear();
         this.renderer.render(this.gridScene, this.camera);
+         this.renderer.render(this.entitiesScene, this.camera);
         requestAnimationFrame(()=>this.animate());
         this.system.clearFlags();
     }
@@ -79,6 +84,8 @@ export default class Renderer
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
         this.camera.up.set(0,0,1);
         this.camera.translateZ(0.5);
+        this.camera.translateX(30.5);
+        this.camera.translateY(-54.5);
         this.camera.lookAt(new THREE.Vector3(32, -32, 0.5));
         this.initTextures();
     }

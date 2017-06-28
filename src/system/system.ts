@@ -20,19 +20,23 @@ export default class System
 
             for (let i = 0; i < data.length; i++)
             {
-                grid.tiles[i] = data[i];
+                grid.tiles[i] = data[i] - 1;
             }
 
             let objects = map.layers[1].objects;
             for (let obj of objects)
             {
-                let type = obj.gid - 256;
+                let type = obj.gid - 256 - 1;
                 let entity = new Model.Entity();
-                entity.position = new Model.Position();
-                entity.position.position[0] = obj.x + 0.5;
-                entity.position.position[2] = obj.y + 0.5;
+                entity.spatial = new Model.Spatial();
+                entity.spatial.position[0] = obj.x / map.tilesets[0].tilewidth + 0.5;
+                entity.spatial.position[1] = -obj.y / map.tilesets[0].tileheight + 0.5;
                 entity.sprite = new Model.Sprite();
                 entity.sprite.type = type;
+                if (entity.sprite.type == 51)
+                {
+                    console.log(entity);
+                }
                 world.entities.push(entity);
             }
             

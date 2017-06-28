@@ -3,7 +3,7 @@ import {Level} from './map';
 
 export enum Tile
 {
-    Void
+    Void = -1
 }
 
 export class Grid

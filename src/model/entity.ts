@@ -1,4 +1,4 @@
-export class Position
+export class Spatial
 {
     radius:number = 0;
     position:number[] = [0,0,0];
@@ -34,7 +34,7 @@ let nextId = 0;
 export class Entity
 {
     id:number = nextId++;
-    position?:Position;
+    spatial?:Spatial;
     Creature?:Creature;
     sprite?:Sprite;
 }

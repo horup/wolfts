@@ -41,7 +41,6 @@ export function syncGrid(world:Model.World, scene:THREE.Scene, tex:THREE.Texture
             {
                 let px = 1.0 / world.map.tilesets[0].imagewidth;
                 let geometry = new THREE.CubeGeometry(1, 1, 1);
-                geometry.translate(0,0, 0.5);
                 let tileset = world.map.tilesets[0];
                 let index = tile;
                 let tw = tileset.tilewidth / tileset.imagewidth - px;
@@ -54,11 +53,9 @@ export function syncGrid(world:Model.World, scene:THREE.Scene, tex:THREE.Texture
                     geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
                     geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
                 }
+                geometry.rotateX(Math.PI/2);
+                geometry.translate(x+0.5,-y-0.5, 0.5);
 
-                for (let vertice of geometry.vertices) {
-                    vertice.x += x;
-                    vertice.y -= y;
-                }
 
                 gridGeometry.merge(geometry, new THREE.Matrix4());
             }
@@ -68,5 +65,38 @@ export function syncGrid(world:Model.World, scene:THREE.Scene, tex:THREE.Texture
     let gridMaterial = new THREE.MeshBasicMaterial({ map: tex, overdraw: 0.5 });
     let mesh = new THREE.Mesh(gridGeometry, gridMaterial);
     scene.add(mesh);
+}
 
+export function syncEntities(world:Model.World, scene:THREE.Scene, spritesTexture:THREE.Texture)
+{
+    clearScene(scene);
+    for (let entity of world.entities)
+    {
+        let spatial = entity.spatial;
+        let sprite = entity.sprite;
+        if (sprite != null && spatial != null)
+        {
+            let index = sprite.type;
+            let columns = 16;
+            let tw = 1 / columns;
+            let th = 1 / columns;
+            let tx = (index % columns) / columns;
+            let ty = 1.0 - th - Math.floor(index / columns) * th;
+            let tex = spritesTexture.clone();
+            tex.uuid = tex.uuid;
+            tex.repeat.x = tw;
+            tex.repeat.y =  th;
+            tex.offset.x = tx;
+            tex.offset.y = ty;
+            tex.needsUpdate = true;
+
+            let sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex}));
+            sp.translateX(spatial.position[0]);
+            sp.translateY(spatial.position[1]);
+            sp.translateZ(0.5);
+            scene.add(sp);
+        }
+    }
+
+    console.log(world.entities.length);
 }
