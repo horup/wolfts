@@ -68,7 +68,7 @@ export default class Input
             camera.translateZ(speed);
         if (this.mouseDown)
         {
-            camera.rotateY(rotation * -this.mouseX);
+            camera.rotateZ(rotation * -this.mouseX);
             camera.translateZ(speed*this.mouseY);
         }
     }

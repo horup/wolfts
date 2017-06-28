@@ -7,9 +7,30 @@ function clearScene(scene:THREE.Scene)
         scene.remove(scene.children[0]);
 }
 
+function syncFloor(world:Model.World, scene:THREE.Scene)
+{
+    let cealingMaterial = new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, side:THREE.DoubleSide });
+    let floorMaterial = new THREE.MeshBasicMaterial({ color: "#707070", overdraw: 0.5, side:THREE.DoubleSide });
+
+    {
+        let geometry = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
+        geometry.translate(world.grid.width /2 , -world.grid.height / 2, 0);
+        let mesh = new THREE.Mesh(geometry, floorMaterial);
+        scene.add(mesh);
+    }
+    {
+        let geometry = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
+        geometry.translate(world.grid.width /2 , -world.grid.height / 2, 1);
+        let mesh = new THREE.Mesh(geometry, cealingMaterial);
+        scene.add(mesh);
+    }
+}
+
 export function syncGrid(world:Model.World, scene:THREE.Scene, tex:THREE.Texture)
 {
     clearScene(scene);
+    syncFloor(world, scene);
+
     let gridGeometry = new THREE.Geometry();
     for (let y = 0; y < world.grid.height; y++)
     {
@@ -20,6 +41,7 @@ export function syncGrid(world:Model.World, scene:THREE.Scene, tex:THREE.Texture
             {
                 let px = 1.0 / world.map.tilesets[0].imagewidth;
                 let geometry = new THREE.CubeGeometry(1, 1, 1);
+                geometry.translate(0,0, 0.5);
                 let tileset = world.map.tilesets[0];
                 let index = tile;
                 let tw = tileset.tilewidth / tileset.imagewidth - px;
@@ -35,7 +57,7 @@ export function syncGrid(world:Model.World, scene:THREE.Scene, tex:THREE.Texture
 
                 for (let vertice of geometry.vertices) {
                     vertice.x += x;
-                    vertice.z += y;
+                    vertice.y -= y;
                 }
 
                 gridGeometry.merge(geometry, new THREE.Matrix4());
@@ -46,4 +68,5 @@ export function syncGrid(world:Model.World, scene:THREE.Scene, tex:THREE.Texture
     let gridMaterial = new THREE.MeshBasicMaterial({ map: tex, overdraw: 0.5 });
     let mesh = new THREE.Mesh(gridGeometry, gridMaterial);
     scene.add(mesh);
+
 }

@@ -11392,7 +11392,6 @@ var Renderer = (function () {
         this.renderer.autoClear = false;
         this.renderer.clear();
         this.renderer.render(this.gridScene, this.camera);
-        this.renderer.render(this.gridScene, this.camera);
         requestAnimationFrame(function () { return _this.animate(); });
         this.system.clearFlags();
     };
@@ -11401,7 +11400,9 @@ var Renderer = (function () {
         this.gridScene = new THREE.Scene();
         this.entitiesScene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
-        this.camera.rotation.y = -1.5;
+        this.camera.up.set(0, 0, 1);
+        this.camera.translateZ(0.5);
+        this.camera.lookAt(new THREE.Vector3(32, -32, 0.5));
         this.initTextures();
     };
     return Renderer;
@@ -55531,8 +55532,25 @@ function clearScene(scene) {
     while (scene.children.length > 0)
         scene.remove(scene.children[0]);
 }
+function syncFloor(world, scene) {
+    var cealingMaterial = new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, side: THREE.DoubleSide });
+    var floorMaterial = new THREE.MeshBasicMaterial({ color: "#707070", overdraw: 0.5, side: THREE.DoubleSide });
+    {
+        var geometry = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
+        geometry.translate(world.grid.width / 2, -world.grid.height / 2, 0);
+        var mesh = new THREE.Mesh(geometry, floorMaterial);
+        scene.add(mesh);
+    }
+    {
+        var geometry = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
+        geometry.translate(world.grid.width / 2, -world.grid.height / 2, 1);
+        var mesh = new THREE.Mesh(geometry, cealingMaterial);
+        scene.add(mesh);
+    }
+}
 function syncGrid(world, scene, tex) {
     clearScene(scene);
+    syncFloor(world, scene);
     var gridGeometry = new THREE.Geometry();
     for (var y = 0; y < world.grid.height; y++) {
         for (var x = 0; x < world.grid.width; x++) {
@@ -55540,6 +55558,7 @@ function syncGrid(world, scene, tex) {
             if (tile != Model.Tile.Void) {
                 var px = 1.0 / world.map.tilesets[0].imagewidth;
                 var geometry = new THREE.CubeGeometry(1, 1, 1);
+                geometry.translate(0, 0, 0.5);
                 var tileset = world.map.tilesets[0];
                 var index = tile;
                 var tw = tileset.tilewidth / tileset.imagewidth - px;
@@ -55555,7 +55574,7 @@ function syncGrid(world, scene, tex) {
                 for (var _i = 0, _a = geometry.vertices; _i < _a.length; _i++) {
                     var vertice = _a[_i];
                     vertice.x += x;
-                    vertice.z += y;
+                    vertice.y -= y;
                 }
                 gridGeometry.merge(geometry, new THREE.Matrix4());
             }
@@ -55629,7 +55648,7 @@ var Input = (function () {
         else if (this.pressed[40])
             camera.translateZ(speed);
         if (this.mouseDown) {
-            camera.rotateY(rotation * -this.mouseX);
+            camera.rotateZ(rotation * -this.mouseX);
             camera.translateZ(speed * this.mouseY);
         }
     };
