@@ -33,11 +33,11 @@ export default class Renderer
     private initTextures()
     {
         let loader = new THREE.TextureLoader();
-        loader.load("textures/sprites.png", (tex1) => 
+        loader.load("dist/textures/sprites.png", (tex1) => 
         {
             tex1.magFilter = THREE.NearestFilter;
             tex1.minFilter = THREE.NearestFilter;
-            loader.load('textures/walls.png', (tex2) => 
+            loader.load('dist/textures/walls.png', (tex2) => 
             {
                 tex2.magFilter = THREE.NearestFilter;
                 tex2.minFilter = THREE.NearestFilter;

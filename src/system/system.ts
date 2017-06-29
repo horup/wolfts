@@ -10,7 +10,7 @@ export default class System
     world:Model.World = new Model.World();
     loadMap(url:string)
     {
-        $.get('maps/e01m01.json').done((map:Model.Level) =>
+        $.get('dist/maps/e01m01.json').done((map:Model.Level) =>
         {
             let world = new Model.World();
             world.map = map;
