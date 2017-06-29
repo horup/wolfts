@@ -6,6 +6,8 @@ import Input from './input';
 
 export default class Renderer
 {
+    width:number;
+    height:number;
     sync:Sync;
     input:Input;
     renderer:THREE.WebGLRenderer;
@@ -25,6 +27,7 @@ export default class Renderer
         this.renderer.autoClear = false;
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
+
     }
 
     private initTextures()
@@ -65,8 +68,25 @@ export default class Renderer
         this.sync.syncEntities(world);
     }
 
+    private resize()
+    {
+        if (this.width != window.innerWidth || this.height != window.innerHeight)
+        {
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
+            this.camera.up.set(0,0,1);
+            this.camera.translateZ(0.5);
+            this.camera.translateX(30.5);
+            this.camera.translateY(-54.5);
+            this.camera.lookAt(new THREE.Vector3(32, -32, 0.5));
+            this.width = window.innerWidth;
+            this.height = window.innerHeight;
+        }
+    }
+
     private animate()
     {
+        this.resize();
         this.input.handle();
         this.system.update(this.input.state);
         this.sync.syncCamera(this.camera);
@@ -95,12 +115,6 @@ export default class Renderer
         this.input = new Input();
         this.gridScene = new THREE.Scene();
         this.entitiesScene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
-        this.camera.up.set(0,0,1);
-        this.camera.translateZ(0.5);
-        this.camera.translateX(30.5);
-        this.camera.translateY(-54.5);
-        this.camera.lookAt(new THREE.Vector3(32, -32, 0.5));
         this.initTextures();
     }
 }
