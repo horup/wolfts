@@ -12,12 +12,17 @@ export class Grid
     height:number = 0;
     tiles:Tile[] = [];
     
-    getTile(x:number, y:number)
+    getIndex(x:number, y:number)
     {
         x = Math.floor(x);
         y = Math.floor(-y);
-        
         let i = (x % this.width) + y * this.width;
+        return i;
+    }
+
+    getTile(x:number, y:number)
+    {
+        let i = this.getIndex(x,y);
         if (i < 0 || i >= this.tiles.length)
             return Tile.Void;
             
@@ -26,10 +31,7 @@ export class Grid
 
     setTile(x:number,y:number, type:Tile)
     {
-        x = Math.floor(x);
-        y = Math.floor(y);
-
-        let i = (x % this.width) + y * this.width;
+        let i = this.getIndex(x,y);
         this.tiles[i] = type;
     }
 
