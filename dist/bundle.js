@@ -45035,10 +45035,10 @@ var Renderer = (function () {
     Renderer.prototype.initTextures = function () {
         var _this = this;
         var loader = new THREE.TextureLoader();
-        loader.load("textures/sprites.png", function (tex1) {
+        loader.load("dist/textures/sprites.png", function (tex1) {
             tex1.magFilter = THREE.NearestFilter;
             tex1.minFilter = THREE.NearestFilter;
-            loader.load('textures/walls.png', function (tex2) {
+            loader.load('dist/textures/walls.png', function (tex2) {
                 tex2.magFilter = THREE.NearestFilter;
                 tex2.minFilter = THREE.NearestFilter;
                 _this.textures.sprites = tex1;
@@ -45469,7 +45469,7 @@ var System = (function () {
     }
     System.prototype.loadMap = function (url) {
         var _this = this;
-        $.get('maps/e01m01.json').done(function (map) {
+        $.get('dist/maps/e01m01.json').done(function (map) {
             var world = new Model.World();
             world.map = map;
             var grid = new Model.Grid();
