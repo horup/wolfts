@@ -24,8 +24,19 @@ export default class System
             for (let i = 0; i < data.length; i++)
             {
                 grid.tiles[i] = data[i] - 1;
-                if (grid.tiles[i] == 98)
-                    grid.tiles[i] = -1;
+                if (grid.tiles[i] == 98) // door
+                {
+                    let door:Model.Door = new Model.Door();
+                    let spatial:Model.Spatial = new Model.Spatial();
+                    let e = new Model.Entity();
+                    e.spatial = spatial;
+                    e.spatial.position[0] = i % grid.width + 0.5;
+                    e.spatial.position[1] = Math.floor(i / grid.width) + 0.5;
+                    e.door = door;
+                    e.door.tex = 98;
+                    world.entities.push(e);
+                    grid.tiles[i] = Model.Tile.Void;
+                }
             }
 
             let objects = map.layers[1].objects;

@@ -137,14 +137,16 @@ export default class Sync
                 {
                     console.log("exceeding sprite limit of " + this.sprites.length);
                 }
+
+                
+                if (sprite.type == 50)
+                {
+                    this.attachedEntity = entity;
+                }
                 
                 i++;
             }
 
-            if (sprite.type == 50)
-            {
-                this.attachedEntity = entity;
-            }
         }
     }
 

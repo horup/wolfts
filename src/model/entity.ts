@@ -30,6 +30,13 @@ export class Sprite
     type:ItemTypes = ItemTypes.Demo;
 }
 
+export class Door
+{
+    tex:number = 0;
+    offset:number = 0;
+    facing:number = 0;
+}
+
 let nextId = 0;
 export class Entity
 {
@@ -37,4 +44,5 @@ export class Entity
     spatial?:Spatial;
     Creature?:Creature;
     sprite?:Sprite;
+    door:Door;
 }

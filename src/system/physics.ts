@@ -62,8 +62,6 @@ export default class Physics
                 entity.spatial.position[0] = x;
                 entity.spatial.position[1] = y;
             }
-
-            break;
         }
     }
 }
