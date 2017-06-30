@@ -62,6 +62,13 @@ export default class Physics
                 entity.spatial.position[0] = x;
                 entity.spatial.position[1] = y;
             }
+
+            if (entity.door != null)
+            {
+                entity.door.offset += 0.01;
+                if (entity.door.offset > 1.0)
+                    entity.door.offset = 0;
+            }
         }
     }
 }

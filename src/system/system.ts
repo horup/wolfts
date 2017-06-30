@@ -31,7 +31,7 @@ export default class System
                     let e = new Model.Entity();
                     e.spatial = spatial;
                     e.spatial.position[0] = i % grid.width + 0.5;
-                    e.spatial.position[1] = Math.floor(i / grid.width) + 0.5;
+                    e.spatial.position[1] = -(Math.ceil(i / grid.width)) + 0.5;
                     e.door = door;
                     e.door.tex = 98;
                     world.entities.push(e);

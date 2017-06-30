@@ -62,7 +62,7 @@ export default class Renderer
         }
         if (system.flags.initEntities)
         {
-            this.sync.initEntities(world, this.entitiesScene, this.textures.sprites);
+            this.sync.initEntities(world, this.entitiesScene, this.textures.sprites, this.textures.walls);
         }
 
         this.sync.syncEntities(world);

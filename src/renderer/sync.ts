@@ -46,6 +46,11 @@ export default class Sync
         this.clearScene(scene);
         this.initFloor(world, scene);
 
+        let px = 1.0 / world.map.tilesets[0].imagewidth;
+        let tileset = world.map.tilesets[0];
+        let tw = tileset.tilewidth / tileset.imagewidth - px;
+        let th = tileset.tileheight / tileset.imageheight;
+
         let gridGeometry = new THREE.Geometry();
         for (let y = 0; y < world.grid.height; y++)
         {
@@ -54,12 +59,8 @@ export default class Sync
                 let tile = world.grid.getTile(x, -y);
                 if (tile != Model.Tile.Void)
                 {
-                    let px = 1.0 / world.map.tilesets[0].imagewidth;
                     let geometry = new THREE.CubeGeometry(1, 1, 1);
-                    let tileset = world.map.tilesets[0];
                     let index = tile;
-                    let tw = tileset.tilewidth / tileset.imagewidth - px;
-                    let th = tileset.tileheight / tileset.imageheight;
                     let tx = (index % tileset.columns) / tileset.columns + px / 2;
                     let ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
                     let uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
@@ -77,6 +78,27 @@ export default class Sync
             }
         }
 
+        for (let e of world.entities)
+        {
+            if (e.door != null)
+            {
+                let geometry = new THREE.CubeGeometry(1, 1, 1);
+                let index = e.door.tex;
+                let tx = (index % tileset.columns) / tileset.columns + px / 2;
+                let ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
+                let uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
+                geometry.faceVertexUvs[0] = [];
+                for (let i = 0; i < 6 * 2; i += 2) {
+                    geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
+                    geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
+                }
+
+                geometry.rotateX(Math.PI/2);
+                geometry.translate(e.spatial.position[0], e.spatial.position[1] + e.door.offset, 0.5);
+               // gridGeometry.merge(geometry, new THREE.Matrix4());
+            }
+        }
+
         let gridMaterial = new THREE.MeshBasicMaterial({ map: tex, overdraw: 0.5 });
         let mesh = new THREE.Mesh(gridGeometry, gridMaterial);
         scene.add(mesh);
@@ -84,11 +106,29 @@ export default class Sync
 
 
     sprites:THREE.Sprite[];
+    dynamicGeometry:THREE.Geometry;
+    dynamicMesh:THREE.Mesh;
 
-    initEntities(world:Model.World, scene:THREE.Scene, spritesTexture:THREE.Texture)
+    initEntities(world:Model.World, scene:THREE.Scene, spritesTexture:THREE.Texture, gridTextures:THREE.Texture)
     {
         this.clearScene(scene);
         this.sprites = [];
+        this.dynamicGeometry = new THREE.Geometry();
+        
+       // this.dynamicGeometry.faces = new Array<THREE.Face3>(this.dynamicGeometry.vertices.length);
+      /*  for (let i = 0; i < this.dynamicGeometry.vertices.length; i++)
+        {
+            this.dynamicGeometry.vertices[i] = new THREE.Vector3();
+        }
+        for (let i = 0; i < this.dynamicGeometry.faces.length; i+=2)
+        {
+            this.dynamicGeometry.faces.push(new THREE.Face3(i, i+1, i+2));
+            //this.dynamicGeometry.faces[i] = new THREE.Face3(0,0,0);
+        }
+
+        this.dynamicGeometry.elementsNeedUpdate = true;*/
+        this.dynamicMesh = new THREE.Mesh(this.dynamicGeometry, new THREE.MeshBasicMaterial({ map: gridTextures, overdraw: 0.5 }));
+        scene.add(this.dynamicMesh);
         for (let i = 0; i < 64; i++)
         {
             let tex = spritesTexture.clone();
@@ -108,46 +148,91 @@ export default class Sync
             sprite.visible = false;
         }
 
+        console.log(this.dynamicGeometry.faceVertexUvs);
+
+/*        this.dynamicGeometry.vertices = [];
+        this.dynamicGeometry.faces = [];
+        this.dynamicGeometry.faceVertexUvs = [];
+        this.dynamicGeometry.elementsNeedUpdate = true;
+        this.dynamicGeometry.verticesNeedUpdate = true;
+        this.dynamicGeometry.uvsNeedUpdate = true;*/
+
+        this.dynamicGeometry.elementsNeedUpdate = true;
+        this.dynamicGeometry.verticesNeedUpdate = true;
+
         let i = 0;
+        let v = 0;
         for (let entity of world.entities)
         {
             let spatial = entity.spatial;
             let sprite = entity.sprite;
-            if (sprite != null && spatial != null)
+            let door = entity.door;
+            if (spatial != null)
             {
-                if (i < this.sprites.length)
+                if (sprite != null)
                 {
-                    let sp = this.sprites[i];
-                    let index = sprite.type;
-                    let columns = 16;
-                    let tw = 1 / columns;
-                    let th = 1 / columns;
-                    let tx = (index % columns) / columns;
-                    let ty = 1.0 - th - Math.floor(index / columns) * th;
-                    let tex = this.sprites[i].material.map;
-                    tex.uuid = tex.uuid;
-                    tex.repeat.x = tw;
-                    tex.repeat.y =  th;
-                    tex.offset.x = tx;
-                    tex.offset.y = ty;
-                    sp.visible = true;
-                    sp.position.set(spatial.position[0], spatial.position[1], 0.5);
+                    if (i < this.sprites.length)
+                    {
+                        let sp = this.sprites[i];
+                        let index = sprite.type;
+                        let columns = 16;
+                        let tw = 1 / columns;
+                        let th = 1 / columns;
+                        let tx = (index % columns) / columns;
+                        let ty = 1.0 - th - Math.floor(index / columns) * th;
+                        let tex = this.sprites[i].material.map;
+                        tex.uuid = tex.uuid;
+                        tex.repeat.x = tw;
+                        tex.repeat.y =  th;
+                        tex.offset.x = tx;
+                        tex.offset.y = ty;
+                        sp.visible = true;
+                        sp.position.set(spatial.position[0], spatial.position[1], 0.5);
+                    }
+                    else
+                    {
+                        console.log("exceeding sprite limit of " + this.sprites.length);
+                    }
+                    
+                    if (sprite.type == 50)
+                    {
+                        this.attachedEntity = entity;
+                    }
+                    
+                    i++;
                 }
-                else
+                if (door != null)
                 {
-                    console.log("exceeding sprite limit of " + this.sprites.length);
-                }
+                    let px = 1.0 / world.map.tilesets[0].imagewidth;
+                    let tileset = world.map.tilesets[0];
+                    let tw = tileset.tilewidth / tileset.imagewidth - px;
+                    let th = tileset.tileheight / tileset.imageheight;
+                    let geometry = new THREE.CubeGeometry(1, 1, 1);
+                    let index = door.tex;
+                    let tx = (index % tileset.columns) / tileset.columns + px / 2;
+                    let ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
+                    let uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
+                    geometry.faceVertexUvs[0] = [];
+                    for (let i = 0; i < 6 * 2; i += 2) {
+                        geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
+                        geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
+                    }
 
-                
-                if (sprite.type == 50)
-                {
-                    this.attachedEntity = entity;
+                    geometry.rotateX(Math.PI/2);
+                    geometry.translate(spatial.position[0], spatial.position[1] + door.offset, 0.5);
+                    this.dynamicGeometry.merge(geometry, new THREE.Matrix4());
+
+                    /*for (let i = 0; i < geometry.vertices.length; i++)
+                    {
+                        this.dynamicGeometry.vertices[v + i] = geometry.vertices[i];
+                    }*/
+
+                    v += geometry.vertices.length;
                 }
-                
-                i++;
             }
-
         }
+
+     //   console.log(this.dynamicGeometry.faceVertexUvs);
     }
 
     syncCamera(camera:THREE.Camera)
