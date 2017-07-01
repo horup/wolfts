@@ -101,7 +101,7 @@ export default class Sync
 
         let gridMaterial = new THREE.MeshBasicMaterial({ map: tex, overdraw: 0.5 });
         let mesh = new THREE.Mesh(gridGeometry, gridMaterial);
-      //  scene.add(mesh);
+        scene.add(mesh);
     }
 
 
@@ -138,7 +138,7 @@ export default class Sync
             let sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex}));
             sp.visible = true;
             this.sprites.push(sp);
-         //   scene.add(sp);
+            scene.add(sp);
         }
     }
 
@@ -154,6 +154,7 @@ export default class Sync
         let vi = 0;
         let uvi = 0;
         let i = 0;
+
         for (let entity of world.entities)
         {
             let spatial = entity.spatial;
@@ -220,13 +221,20 @@ export default class Sync
                     {
                         p[vi++] = p2[i];
                     }
+
+                    let u:any = uv.array;
+                    let u2:any = buff.getAttribute('uv').array;
+                    for (let i = 0; i < u2.length; i++)
+                    {
+                        u[uvi++] = u2[i];
+                    }
                 }
             }
         }
         
         (this.dynamicGeometry.attributes as any).position.needsUpdate = true;
-       // this.dynamicGeometry.setDrawRange(0, );
-     //   console.log(this.dynamicGeometry.faceVertexUvs);
+        (this.dynamicGeometry.attributes as any).uv.needsUpdate = true;
+        this.dynamicGeometry.setDrawRange(0, vi/3); // no sure if correct
     }
 
     syncCamera(camera:THREE.Camera)

@@ -100,6 +100,7 @@ export default class Renderer
         requestAnimationFrame(()=>this.animate());
         this.system.clearFlags();
         let elapsed = (new Date().getTime()) - time;
+        console.log(elapsed);
     }
 
     private attachedEntity:Model.Entity = null;
