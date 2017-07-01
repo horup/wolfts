@@ -3,67 +3,46 @@ import * as Model from '../model';
 import System from '../system';
 import Sync from './sync';
 import Input from './input';
-
+import * as Managers from './managers';
 export default class Renderer
 {
+    frames = 0;
+    scene:THREE.Scene = new THREE.Scene(); 
+    managers:Managers.Manager[];
     width:number;
     height:number;
-    sync:Sync;
     input:Input;
     renderer:THREE.WebGLRenderer;
     camera:THREE.Camera;
-    gridScene:THREE.Scene;
-    entitiesScene:THREE.Scene;
     system:System;
     textures = {sprites:null as THREE.Texture, walls:null as THREE.Texture};
     constructor(system:System)
     {
         this.system = system;
-    }
-
-    private initRenderer()
-    {
-        this.renderer = new THREE.WebGLRenderer();
-        this.renderer.autoClear = false;
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(this.renderer.domElement);
-
-    }
-
-    private initTextures()
-    {
         let loader = new THREE.TextureLoader();
         loader.load("dist/textures/sprites.png", (tex1) => 
         {
-            tex1.magFilter = THREE.NearestFilter;
-            tex1.minFilter = THREE.NearestFilter;
             loader.load('dist/textures/walls.png', (tex2) => 
             {
+                tex1.magFilter = THREE.NearestFilter;
+                tex1.minFilter = THREE.NearestFilter;
                 tex2.magFilter = THREE.NearestFilter;
                 tex2.minFilter = THREE.NearestFilter;
                 this.textures.sprites = tex1;
                 this.textures.walls = tex2;
-                this.initRenderer();
+                this.input = new Input();
+                this.renderer = new THREE.WebGLRenderer();
+                this.renderer.autoClear = false;
+                this.resize();
+                this.managers = [
+                    new Managers.CameraManager(this.camera, this.input),
+                    new Managers.GridManager(this.scene),
+                    new Managers.SpriteManager(this.scene)
+                    ] as Managers.Manager[];
+                document.body.appendChild(this.renderer.domElement);
                 this.animate();
             });
         });
-    }
-
-    test = {};
-
-    private syncScene()
-    {
-        let world = this.system.world;
-        let system = this.system;
-
-        if (system.flags.init)
-        {
-            this.sync.initGrid(world, this.gridScene, this.textures.walls);
-            this.sync.initSprites(world, this.entitiesScene, this.textures.sprites, this.textures.walls);
-            this.sync.initGeometry(this.entitiesScene, this.textures.walls);
-        }
-
-        this.sync.syncEntities(world);
     }
 
     private resize()
@@ -81,28 +60,34 @@ export default class Renderer
             this.height = window.innerHeight;
         }
     }
-    iterations = 0;
+
     private animate()
     {
         this.resize();
         this.input.handle();
         this.system.update(this.input.state);
-        this.sync.syncCamera(this.camera);
-
-        this.syncScene();
+        
         let time = new Date().getTime();
+
+        for (let manager of this.managers)
+        {
+            manager.update(this.system.world);
+        }
+
         this.renderer.autoClear = false;
         this.renderer.clear();
-        this.renderer.render(this.gridScene, this.camera);
-        this.renderer.render(this.entitiesScene, this.camera);
+        this.renderer.render(this.scene, this.camera);
+
         requestAnimationFrame(()=>this.animate());
         this.system.clearFlags();
         let elapsed = (new Date().getTime()) - time;
-       // console.log(elapsed);
-       if (this.iterations++ % 60 == 0)
-       {
-           document.getElementById('info').innerHTML = elapsed + "ms";
-       }
+       
+        if (this.frames++ % 60 == 0)
+        {
+            document.getElementById('info').innerHTML = elapsed + "ms";
+        }
+
+        requestAnimationFrame(()=>this.animate());
     }
 
     private attachedEntity:Model.Entity = null;
@@ -110,14 +95,5 @@ export default class Renderer
     private attachCamera(entity:Model.Entity)
     {
 
-    }
-
-    init()
-    {
-        this.sync = new Sync();
-        this.input = new Input();
-        this.gridScene = new THREE.Scene();
-        this.entitiesScene = new THREE.Scene();
-        this.initTextures();
     }
 }
