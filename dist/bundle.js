@@ -44328,7 +44328,7 @@ var Renderer = (function () {
         requestAnimationFrame(function () { return _this.animate(); });
         this.system.clearFlags();
         var elapsed = (new Date().getTime()) - time;
-        console.log(elapsed);
+        // console.log(elapsed);
     };
     Renderer.prototype.attachCamera = function (entity) {
     };
