@@ -44264,6 +44264,7 @@ var Renderer = (function () {
     function Renderer(system) {
         this.textures = { sprites: null, walls: null };
         this.test = {};
+        this.iterations = 0;
         this.attachedEntity = null;
         this.system = system;
     }
@@ -44329,6 +44330,9 @@ var Renderer = (function () {
         this.system.clearFlags();
         var elapsed = (new Date().getTime()) - time;
         // console.log(elapsed);
+        if (this.iterations++ % 60 == 0) {
+            document.getElementById('info').innerHTML = elapsed + "ms";
+        }
     };
     Renderer.prototype.attachCamera = function (entity) {
     };

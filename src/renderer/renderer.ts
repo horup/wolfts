@@ -83,7 +83,7 @@ export default class Renderer
             this.height = window.innerHeight;
         }
     }
-
+    iterations = 0;
     private animate()
     {
         this.resize();
@@ -101,6 +101,10 @@ export default class Renderer
         this.system.clearFlags();
         let elapsed = (new Date().getTime()) - time;
        // console.log(elapsed);
+       if (this.iterations++ % 60 == 0)
+       {
+           document.getElementById('info').innerHTML = elapsed + "ms";
+       }
     }
 
     private attachedEntity:Model.Entity = null;
