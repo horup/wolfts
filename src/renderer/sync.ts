@@ -126,7 +126,7 @@ export default class Sync
         console.log(this.dynamicGeometry.getAttribute('position'));
         let box = new THREE.BoxGeometry(1,1,1);
      
-        this.dynamicMesh = new THREE.Mesh(this.dynamicGeometry, new THREE.MeshBasicMaterial({ map: gridTextures, overdraw: 0.5 }));
+        this.dynamicMesh = new THREE.Mesh(this.dynamicGeometry, new THREE.MeshBasicMaterial({ map: gridTextures, overdraw: 0.5, side:THREE.DoubleSide }));
         scene.add(this.dynamicMesh);
 
 
@@ -200,19 +200,21 @@ export default class Sync
                     let tileset = world.map.tilesets[0];
                     let tw = tileset.tilewidth / tileset.imagewidth - px;
                     let th = tileset.tileheight / tileset.imageheight;
-                    let geometry = new THREE.CubeGeometry(1, 1, 1);
+                    let geometry = new THREE.PlaneGeometry(1, 1);
                     let index = door.tex;
                     let tx = (index % tileset.columns) / tileset.columns + px / 2;
                     let ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
                     let uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
                     geometry.faceVertexUvs[0] = [];
-                    for (let i = 0; i < 6 * 2; i += 2) {
+                    for (let i = 0; i < 1; i += 2) {
                         geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
                         geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
                     }
 
                     geometry.rotateX(Math.PI/2);
+                    geometry.rotateZ(Math.PI/2);
                     geometry.translate(spatial.position[0], spatial.position[1] + door.offset, 0.5);
+                    geometry.rotateZ(spatial.facing);
 
                     let buff = new THREE.BufferGeometry().fromGeometry(geometry);
                     let p:any = position.array;

@@ -44296,7 +44296,7 @@ var Renderer = (function () {
             this.sync.initGrid(world, this.gridScene, this.textures.walls);
         }
         if (system.flags.initEntities) {
-            this.sync.initEntities(world, this.entitiesScene, this.textures.sprites);
+            this.sync.initEntities(world, this.entitiesScene, this.textures.sprites, this.textures.walls);
         }
         this.sync.syncEntities(world);
     };
@@ -44328,6 +44328,7 @@ var Renderer = (function () {
         requestAnimationFrame(function () { return _this.animate(); });
         this.system.clearFlags();
         var elapsed = (new Date().getTime()) - time;
+        console.log(elapsed);
     };
     Renderer.prototype.attachCamera = function (entity) {
     };
@@ -44355,6 +44356,7 @@ var Model = __webpack_require__(2);
 var Sync = (function () {
     function Sync() {
         this.attachedEntity = null;
+        this.max = 1024;
     }
     Sync.prototype.clearScene = function (scene) {
         while (scene.children.length > 0) {
@@ -44387,17 +44389,17 @@ var Sync = (function () {
     Sync.prototype.initGrid = function (world, scene, tex) {
         this.clearScene(scene);
         this.initFloor(world, scene);
+        var px = 1.0 / world.map.tilesets[0].imagewidth;
+        var tileset = world.map.tilesets[0];
+        var tw = tileset.tilewidth / tileset.imagewidth - px;
+        var th = tileset.tileheight / tileset.imageheight;
         var gridGeometry = new THREE.Geometry();
         for (var y = 0; y < world.grid.height; y++) {
             for (var x = 0; x < world.grid.width; x++) {
                 var tile = world.grid.getTile(x, -y);
                 if (tile != Model.Tile.Void) {
-                    var px = 1.0 / world.map.tilesets[0].imagewidth;
                     var geometry = new THREE.CubeGeometry(1, 1, 1);
-                    var tileset = world.map.tilesets[0];
                     var index = tile;
-                    var tw = tileset.tilewidth / tileset.imagewidth - px;
-                    var th = tileset.tileheight / tileset.imageheight;
                     var tx = (index % tileset.columns) / tileset.columns + px / 2;
                     var ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
                     var uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
@@ -44412,13 +44414,41 @@ var Sync = (function () {
                 }
             }
         }
+        for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
+            var e = _a[_i];
+            if (e.door != null) {
+                var geometry = new THREE.CubeGeometry(1, 1, 1);
+                var index = e.door.tex;
+                var tx = (index % tileset.columns) / tileset.columns + px / 2;
+                var ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
+                var uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
+                geometry.faceVertexUvs[0] = [];
+                for (var i = 0; i < 6 * 2; i += 2) {
+                    geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
+                    geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
+                }
+                geometry.rotateX(Math.PI / 2);
+                geometry.translate(e.spatial.position[0], e.spatial.position[1] + e.door.offset, 0.5);
+                // gridGeometry.merge(geometry, new THREE.Matrix4());
+            }
+        }
         var gridMaterial = new THREE.MeshBasicMaterial({ map: tex, overdraw: 0.5 });
         var mesh = new THREE.Mesh(gridGeometry, gridMaterial);
         scene.add(mesh);
     };
-    Sync.prototype.initEntities = function (world, scene, spritesTexture) {
+    Sync.prototype.initEntities = function (world, scene, spritesTexture, gridTextures) {
         this.clearScene(scene);
         this.sprites = [];
+        var geometry = new THREE.Geometry();
+        for (var i = 0; i < this.max; i++) {
+            geometry.merge(new THREE.BoxGeometry(1, 1, 1), new THREE.Matrix4());
+        }
+        this.dynamicGeometry = new THREE.BufferGeometry();
+        this.dynamicGeometry.fromGeometry(geometry);
+        console.log(this.dynamicGeometry.getAttribute('position'));
+        var box = new THREE.BoxGeometry(1, 1, 1);
+        this.dynamicMesh = new THREE.Mesh(this.dynamicGeometry, new THREE.MeshBasicMaterial({ map: gridTextures, overdraw: 0.5, side: THREE.DoubleSide }));
+        scene.add(this.dynamicMesh);
         for (var i = 0; i < 64; i++) {
             var tex = spritesTexture.clone();
             tex.uuid = tex.uuid;
@@ -44434,38 +44464,79 @@ var Sync = (function () {
             var sprite = _a[_i];
             sprite.visible = false;
         }
+        var position = this.dynamicGeometry.getAttribute('position');
+        var uv = this.dynamicGeometry.getAttribute('uv');
+        var vi = 0;
+        var uvi = 0;
         var i = 0;
         for (var _b = 0, _c = world.entities; _b < _c.length; _b++) {
             var entity = _c[_b];
             var spatial = entity.spatial;
             var sprite = entity.sprite;
-            if (sprite != null && spatial != null) {
-                if (i < this.sprites.length) {
-                    var sp = this.sprites[i];
-                    var index = sprite.type;
-                    var columns = 16;
-                    var tw = 1 / columns;
-                    var th = 1 / columns;
-                    var tx = (index % columns) / columns;
-                    var ty = 1.0 - th - Math.floor(index / columns) * th;
-                    var tex = this.sprites[i].material.map;
-                    tex.uuid = tex.uuid;
-                    tex.repeat.x = tw;
-                    tex.repeat.y = th;
-                    tex.offset.x = tx;
-                    tex.offset.y = ty;
-                    sp.visible = true;
-                    sp.position.set(spatial.position[0], spatial.position[1], 0.5);
+            var door = entity.door;
+            if (spatial != null) {
+                if (sprite != null) {
+                    if (i < this.sprites.length) {
+                        var sp = this.sprites[i];
+                        var index = sprite.type;
+                        var columns = 16;
+                        var tw = 1 / columns;
+                        var th = 1 / columns;
+                        var tx = (index % columns) / columns;
+                        var ty = 1.0 - th - Math.floor(index / columns) * th;
+                        var tex = this.sprites[i].material.map;
+                        tex.uuid = tex.uuid;
+                        tex.repeat.x = tw;
+                        tex.repeat.y = th;
+                        tex.offset.x = tx;
+                        tex.offset.y = ty;
+                        sp.visible = true;
+                        sp.position.set(spatial.position[0], spatial.position[1], 0.5);
+                    }
+                    else {
+                        console.log("exceeding sprite limit of " + this.sprites.length);
+                    }
+                    if (sprite.type == 50) {
+                        this.attachedEntity = entity;
+                    }
+                    i++;
                 }
-                else {
-                    console.log("exceeding sprite limit of " + this.sprites.length);
+                if (door != null) {
+                    var px = 1.0 / world.map.tilesets[0].imagewidth;
+                    var tileset = world.map.tilesets[0];
+                    var tw = tileset.tilewidth / tileset.imagewidth - px;
+                    var th = tileset.tileheight / tileset.imageheight;
+                    var geometry = new THREE.PlaneGeometry(1, 1);
+                    var index = door.tex;
+                    var tx = (index % tileset.columns) / tileset.columns + px / 2;
+                    var ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
+                    var uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
+                    geometry.faceVertexUvs[0] = [];
+                    for (var i_1 = 0; i_1 < 1; i_1 += 2) {
+                        geometry.faceVertexUvs[0][i_1] = [uvs[3], uvs[0], uvs[2]];
+                        geometry.faceVertexUvs[0][i_1 + 1] = [uvs[0], uvs[1], uvs[2]];
+                    }
+                    geometry.rotateX(Math.PI / 2);
+                    geometry.rotateZ(Math.PI / 2);
+                    geometry.translate(spatial.position[0], spatial.position[1] + door.offset, 0.5);
+                    geometry.rotateZ(spatial.facing);
+                    var buff = new THREE.BufferGeometry().fromGeometry(geometry);
+                    var p = position.array;
+                    var p2 = buff.getAttribute('position').array;
+                    for (var i_2 = 0; i_2 < p2.length; i_2++) {
+                        p[vi++] = p2[i_2];
+                    }
+                    var u = uv.array;
+                    var u2 = buff.getAttribute('uv').array;
+                    for (var i_3 = 0; i_3 < u2.length; i_3++) {
+                        u[uvi++] = u2[i_3];
+                    }
                 }
-                if (sprite.type == 50) {
-                    this.attachedEntity = entity;
-                }
-                i++;
             }
         }
+        this.dynamicGeometry.attributes.position.needsUpdate = true;
+        this.dynamicGeometry.attributes.uv.needsUpdate = true;
+        this.dynamicGeometry.setDrawRange(0, vi / 3); // no sure if correct
     };
     Sync.prototype.syncCamera = function (camera) {
         if (this.attachedEntity != null) {
@@ -44736,7 +44807,7 @@ var System = (function () {
                     var e = new Model.Entity();
                     e.spatial = spatial;
                     e.spatial.position[0] = i % grid.width + 0.5;
-                    e.spatial.position[1] = Math.floor(i / grid.width) + 0.5;
+                    e.spatial.position[1] = -(Math.ceil(i / grid.width)) + 0.5;
                     e.door = door;
                     e.door.tex = 98;
                     world.entities.push(e);
@@ -55105,6 +55176,11 @@ var Physics = (function () {
                 }
                 entity.spatial.position[0] = x;
                 entity.spatial.position[1] = y;
+            }
+            if (entity.door != null) {
+                entity.door.offset += 0.01;
+                if (entity.door.offset > 1.0)
+                    entity.door.offset = 0;
             }
         }
     };
