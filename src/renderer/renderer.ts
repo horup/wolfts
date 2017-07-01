@@ -36,7 +36,7 @@ export default class Renderer
                 this.resize();
                 this.managers = [
                     new Managers.CameraManager(this.camera, this.input),
-                    new Managers.GridManager(this.scene),
+                    new Managers.GridManager(this.scene, this.textures.walls),
                     new Managers.SpriteManager(this.scene)
                     ] as Managers.Manager[];
                 document.body.appendChild(this.renderer.domElement);
@@ -61,25 +61,21 @@ export default class Renderer
         }
     }
 
+    lambda = ()=>this.animate();
     private animate()
     {
+        let time = new Date().getTime();
         this.resize();
         this.input.handle();
-        this.system.update(this.input.state);
-        
-        let time = new Date().getTime();
+       // this.system.update(this.input.state);
 
         for (let manager of this.managers)
         {
             manager.update(this.system.world);
         }
 
-        this.renderer.autoClear = false;
-        this.renderer.clear();
         this.renderer.render(this.scene, this.camera);
 
-        requestAnimationFrame(()=>this.animate());
-        this.system.clearFlags();
         let elapsed = (new Date().getTime()) - time;
        
         if (this.frames++ % 60 == 0)
@@ -87,7 +83,7 @@ export default class Renderer
             document.getElementById('info').innerHTML = elapsed + "ms";
         }
 
-        requestAnimationFrame(()=>this.animate());
+        requestAnimationFrame(this.lambda);
     }
 
     private attachedEntity:Model.Entity = null;

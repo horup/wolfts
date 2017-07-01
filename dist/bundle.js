@@ -65,6 +65,23 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var Manager = (function () {
+    function Manager() {
+    }
+    Manager.prototype.update = function (world) {
+    };
+    return Manager;
+}());
+exports.default = Manager;
+
+
+/***/ }),
+/* 1 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -44173,7 +44190,7 @@ function CanvasRenderer() {
 
 
 /***/ }),
-/* 1 */
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44208,7 +44225,7 @@ exports.Level = Level;
 
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44217,27 +44234,10 @@ function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-__export(__webpack_require__(1));
-__export(__webpack_require__(9));
-__export(__webpack_require__(10));
-__export(__webpack_require__(1));
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var Manager = (function () {
-    function Manager() {
-    }
-    Manager.prototype.update = function (world) {
-    };
-    return Manager;
-}());
-exports.default = Manager;
+__export(__webpack_require__(2));
+__export(__webpack_require__(11));
+__export(__webpack_require__(12));
+__export(__webpack_require__(2));
 
 
 /***/ }),
@@ -44273,15 +44273,16 @@ exports.default = renderer_1.default;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var THREE = __webpack_require__(0);
-var input_1 = __webpack_require__(11);
-var Managers = __webpack_require__(13);
+var THREE = __webpack_require__(1);
+var input_1 = __webpack_require__(7);
+var Managers = __webpack_require__(9);
 var Renderer = (function () {
     function Renderer(system) {
         var _this = this;
         this.frames = 0;
         this.scene = new THREE.Scene();
         this.textures = { sprites: null, walls: null };
+        this.lambda = function () { return _this.animate(); };
         this.attachedEntity = null;
         this.system = system;
         var loader = new THREE.TextureLoader();
@@ -44299,7 +44300,7 @@ var Renderer = (function () {
                 _this.resize();
                 _this.managers = [
                     new Managers.CameraManager(_this.camera, _this.input),
-                    new Managers.GridManager(_this.scene),
+                    new Managers.GridManager(_this.scene, _this.textures.walls),
                     new Managers.SpriteManager(_this.scene)
                 ];
                 document.body.appendChild(_this.renderer.domElement);
@@ -44321,25 +44322,20 @@ var Renderer = (function () {
         }
     };
     Renderer.prototype.animate = function () {
-        var _this = this;
+        var time = new Date().getTime();
         this.resize();
         this.input.handle();
-        this.system.update(this.input.state);
-        var time = new Date().getTime();
+        // this.system.update(this.input.state);
         for (var _i = 0, _a = this.managers; _i < _a.length; _i++) {
             var manager = _a[_i];
             manager.update(this.system.world);
         }
-        this.renderer.autoClear = false;
-        this.renderer.clear();
         this.renderer.render(this.scene, this.camera);
-        requestAnimationFrame(function () { return _this.animate(); });
-        this.system.clearFlags();
         var elapsed = (new Date().getTime()) - time;
         if (this.frames++ % 60 == 0) {
             document.getElementById('info').innerHTML = elapsed + "ms";
         }
-        requestAnimationFrame(function () { return _this.animate(); });
+        requestAnimationFrame(this.lambda);
     };
     Renderer.prototype.attachCamera = function (entity) {
     };
@@ -44349,130 +44345,14 @@ exports.default = Renderer;
 
 
 /***/ }),
-/* 7 */,
-/* 8 */,
-/* 9 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var Spatial = (function () {
-    function Spatial() {
-        this.radius = 0;
-        this.position = [0, 0, 0];
-        this.velocity = [0, 0, 0];
-        this.facing = 0;
-        this.solid = true;
-    }
-    return Spatial;
-}());
-exports.Spatial = Spatial;
-var CreatureTypes;
-(function (CreatureTypes) {
-    CreatureTypes[CreatureTypes["Dog"] = 0] = "Dog";
-    CreatureTypes[CreatureTypes["Guard"] = 1] = "Guard";
-})(CreatureTypes = exports.CreatureTypes || (exports.CreatureTypes = {}));
-var ItemTypes;
-(function (ItemTypes) {
-    ItemTypes[ItemTypes["Demo"] = 0] = "Demo";
-    ItemTypes[ItemTypes["DeathCam"] = 1] = "DeathCam";
-})(ItemTypes = exports.ItemTypes || (exports.ItemTypes = {}));
-var Creature = (function () {
-    function Creature() {
-        this.type = CreatureTypes.Dog;
-        this.animation = 0;
-    }
-    return Creature;
-}());
-exports.Creature = Creature;
-var Sprite = (function () {
-    function Sprite() {
-        this.type = ItemTypes.Demo;
-    }
-    return Sprite;
-}());
-exports.Sprite = Sprite;
-var Door = (function () {
-    function Door() {
-        this.tex = 0;
-        this.offset = 0;
-        this.facing = 0;
-    }
-    return Door;
-}());
-exports.Door = Door;
-var nextId = 0;
-var Entity = (function () {
-    function Entity() {
-        this.id = nextId++;
-    }
-    return Entity;
-}());
-exports.Entity = Entity;
-
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var map_1 = __webpack_require__(1);
-var Tile;
-(function (Tile) {
-    Tile[Tile["Void"] = -1] = "Void";
-})(Tile = exports.Tile || (exports.Tile = {}));
-var Grid = (function () {
-    function Grid() {
-        this.width = 0;
-        this.height = 0;
-        this.tiles = [];
-    }
-    Grid.prototype.getIndex = function (x, y) {
-        x = Math.floor(x);
-        y = Math.floor(-y);
-        var i = (x % this.width) + y * this.width;
-        return i;
-    };
-    Grid.prototype.getTile = function (x, y) {
-        var i = this.getIndex(x, y);
-        if (i < 0 || i >= this.tiles.length)
-            return Tile.Void;
-        return this.tiles[i];
-    };
-    Grid.prototype.setTile = function (x, y, type) {
-        var i = this.getIndex(x, y);
-        this.tiles[i] = type;
-    };
-    Grid.prototype.getSolid = function (x, y) {
-        var solid = this.getTile(x, y) != Tile.Void;
-        return solid;
-    };
-    return Grid;
-}());
-exports.Grid = Grid;
-var World = (function () {
-    function World() {
-        this.map = new map_1.Level();
-        this.grid = new Grid();
-        this.entities = [];
-    }
-    return World;
-}());
-exports.World = World;
-
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var THREE = __webpack_require__(0);
-var inputstate_1 = __webpack_require__(12);
+var THREE = __webpack_require__(1);
+var inputstate_1 = __webpack_require__(8);
 var Input = (function () {
     function Input() {
         var _this = this;
@@ -44541,7 +44421,7 @@ exports.default = Input;
 
 
 /***/ }),
-/* 12 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44558,20 +44438,263 @@ exports.default = InputState;
 
 
 /***/ }),
-/* 13 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var manager_1 = __webpack_require__(3);
+var manager_1 = __webpack_require__(0);
 exports.Manager = manager_1.default;
-var gridmanager_1 = __webpack_require__(14);
+var gridmanager_1 = __webpack_require__(10);
 exports.GridManager = gridmanager_1.default;
-var cameramanager_1 = __webpack_require__(21);
+var cameramanager_1 = __webpack_require__(13);
 exports.CameraManager = cameramanager_1.default;
-var spritemanager_1 = __webpack_require__(22);
+var spritemanager_1 = __webpack_require__(14);
 exports.SpriteManager = spritemanager_1.default;
+
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var THREE = __webpack_require__(1);
+var Model = __webpack_require__(3);
+var manager_1 = __webpack_require__(0);
+var GridManager = (function (_super) {
+    __extends(GridManager, _super);
+    function GridManager(scene, gridTexture) {
+        var _this = _super.call(this) || this;
+        _this.width = 0;
+        _this.height = 0;
+        _this.group = new THREE.Group();
+        _this.cealingMaterial = new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, side: THREE.DoubleSide });
+        _this.floorMaterial = new THREE.MeshBasicMaterial({ color: "#707070", overdraw: 0.5, side: THREE.DoubleSide });
+        _this.gridMaterial = new THREE.MeshBasicMaterial({ map: gridTexture, overdraw: 0.5 });
+        scene.add(_this.group);
+        return _this;
+    }
+    GridManager.prototype.initFloor = function (world) {
+        var geometry = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
+        geometry.translate(world.grid.width / 2, -world.grid.height / 2, 0);
+        var mesh = new THREE.Mesh(geometry, this.floorMaterial);
+        this.group.add(mesh);
+        geometry = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
+        geometry.translate(world.grid.width / 2, -world.grid.height / 2, 1);
+        mesh = new THREE.Mesh(geometry, this.cealingMaterial);
+        this.group.add(mesh);
+    };
+    GridManager.prototype.initGrid = function (world) {
+        var px = 1.0 / world.map.tilesets[0].imagewidth;
+        var tileset = world.map.tilesets[0];
+        var tw = tileset.tilewidth / tileset.imagewidth - px;
+        var th = tileset.tileheight / tileset.imageheight;
+        var gridGeometry = new THREE.Geometry();
+        for (var y = 0; y < world.grid.height; y++) {
+            for (var x = 0; x < world.grid.width; x++) {
+                var tile = world.grid.getTile(x, -y);
+                if (tile != Model.Tile.Void) {
+                    var geometry = new THREE.CubeGeometry(1, 1, 1);
+                    var index = tile;
+                    var tx = (index % tileset.columns) / tileset.columns + px / 2;
+                    var ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
+                    var uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
+                    geometry.faceVertexUvs[0] = [];
+                    for (var i = 0; i < 6 * 2; i += 2) {
+                        geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
+                        geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
+                    }
+                    geometry.rotateX(Math.PI / 2);
+                    geometry.translate(x + 0.5, -y - 0.5, 0.5);
+                    gridGeometry.merge(geometry, new THREE.Matrix4());
+                }
+            }
+        }
+        this.gridMesh = new THREE.Mesh(gridGeometry, this.gridMaterial);
+        this.group.add(this.gridMesh);
+    };
+    GridManager.prototype.dispose = function () {
+        if (this.group.children.length > 0) {
+            this.group.remove(this.floorMesh);
+            this.group.remove(this.cealingMesh);
+            this.group.remove(this.gridMesh);
+            this.floorMesh.geometry.dispose();
+            this.cealingMesh.geometry.dispose();
+            this.gridMesh.geometry.dispose();
+        }
+    };
+    GridManager.prototype.update = function (world) {
+        if (this.width != world.grid.width || this.height != world.grid.height) {
+            this.width = world.grid.width;
+            this.height = world.grid.height;
+            this.dispose();
+            this.initFloor(world);
+            this.initGrid(world);
+        }
+    };
+    return GridManager;
+}(manager_1.default));
+exports.default = GridManager;
+
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var Spatial = (function () {
+    function Spatial() {
+        this.radius = 0;
+        this.position = [0, 0, 0];
+        this.velocity = [0, 0, 0];
+        this.facing = 0;
+        this.solid = true;
+    }
+    return Spatial;
+}());
+exports.Spatial = Spatial;
+var CreatureTypes;
+(function (CreatureTypes) {
+    CreatureTypes[CreatureTypes["Dog"] = 0] = "Dog";
+    CreatureTypes[CreatureTypes["Guard"] = 1] = "Guard";
+})(CreatureTypes = exports.CreatureTypes || (exports.CreatureTypes = {}));
+var ItemTypes;
+(function (ItemTypes) {
+    ItemTypes[ItemTypes["Demo"] = 0] = "Demo";
+    ItemTypes[ItemTypes["DeathCam"] = 1] = "DeathCam";
+})(ItemTypes = exports.ItemTypes || (exports.ItemTypes = {}));
+var Creature = (function () {
+    function Creature() {
+        this.type = CreatureTypes.Dog;
+        this.animation = 0;
+    }
+    return Creature;
+}());
+exports.Creature = Creature;
+var Sprite = (function () {
+    function Sprite() {
+        this.type = ItemTypes.Demo;
+    }
+    return Sprite;
+}());
+exports.Sprite = Sprite;
+var Door = (function () {
+    function Door() {
+        this.tex = 0;
+        this.offset = 0;
+        this.facing = 0;
+    }
+    return Door;
+}());
+exports.Door = Door;
+var nextId = 0;
+var Entity = (function () {
+    function Entity() {
+        this.id = nextId++;
+    }
+    return Entity;
+}());
+exports.Entity = Entity;
+
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var map_1 = __webpack_require__(2);
+var Tile;
+(function (Tile) {
+    Tile[Tile["Void"] = -1] = "Void";
+})(Tile = exports.Tile || (exports.Tile = {}));
+var Grid = (function () {
+    function Grid() {
+        this.width = 0;
+        this.height = 0;
+        this.tiles = [];
+    }
+    Grid.prototype.getIndex = function (x, y) {
+        x = Math.floor(x);
+        y = Math.floor(-y);
+        var i = (x % this.width) + y * this.width;
+        return i;
+    };
+    Grid.prototype.getTile = function (x, y) {
+        var i = this.getIndex(x, y);
+        if (i < 0 || i >= this.tiles.length)
+            return Tile.Void;
+        return this.tiles[i];
+    };
+    Grid.prototype.setTile = function (x, y, type) {
+        var i = this.getIndex(x, y);
+        this.tiles[i] = type;
+    };
+    Grid.prototype.getSolid = function (x, y) {
+        var solid = this.getTile(x, y) != Tile.Void;
+        return solid;
+    };
+    return Grid;
+}());
+exports.Grid = Grid;
+var World = (function () {
+    function World() {
+        this.map = new map_1.Level();
+        this.grid = new Grid();
+        this.entities = [];
+    }
+    return World;
+}());
+exports.World = World;
+
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var manager_1 = __webpack_require__(0);
+var CameraManager = (function (_super) {
+    __extends(CameraManager, _super);
+    function CameraManager(camera, input) {
+        var _this = _super.call(this) || this;
+        _this.camera = camera;
+        _this.input = input;
+        return _this;
+    }
+    CameraManager.prototype.update = function (world) {
+    };
+    return CameraManager;
+}(manager_1.default));
+exports.default = CameraManager;
 
 
 /***/ }),
@@ -44591,49 +44714,17 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var THREE = __webpack_require__(0);
-var manager_1 = __webpack_require__(3);
-var GridManager = (function (_super) {
-    __extends(GridManager, _super);
-    function GridManager(scene) {
-        var _this = _super.call(this) || this;
-        _this.width = 0;
-        _this.height = 0;
-        _this.group = new THREE.Group();
-        _this.cealingMaterial = new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, side: THREE.DoubleSide });
-        _this.floorMaterial = new THREE.MeshBasicMaterial({ color: "#707070", overdraw: 0.5, side: THREE.DoubleSide });
-        scene.add(_this.group);
-        return _this;
+var manager_1 = __webpack_require__(0);
+var SpriteManager = (function (_super) {
+    __extends(SpriteManager, _super);
+    function SpriteManager(scene) {
+        return _super.call(this) || this;
     }
-    GridManager.prototype.update = function (world) {
-        if (this.width != world.grid.width || this.height != world.grid.height) {
-            this.width = world.grid.width;
-            this.height = world.grid.height;
-            if (this.floorMesh != null && this.cealingMesh != null) {
-                this.group.remove(this.floorMesh);
-                this.group.remove(this.cealingMesh);
-                this.floorMesh.geometry.dispose();
-                this.cealingMesh.geometry.dispose();
-                this.group.remove(this.floorMesh);
-            }
-            {
-                var geometry = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
-                geometry.translate(world.grid.width / 2, -world.grid.height / 2, 0);
-                var mesh = new THREE.Mesh(geometry, this.floorMaterial);
-                this.group.add(mesh);
-            }
-            {
-                var geometry = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
-                geometry.translate(world.grid.width / 2, -world.grid.height / 2, 1);
-                var mesh = new THREE.Mesh(geometry, this.cealingMaterial);
-                this.group.add(mesh);
-            }
-            console.log("init floor");
-        }
+    SpriteManager.prototype.update = function (world) {
     };
-    return GridManager;
+    return SpriteManager;
 }(manager_1.default));
-exports.default = GridManager;
+exports.default = SpriteManager;
 
 
 /***/ }),
@@ -44654,7 +44745,7 @@ exports.default = system_1.default;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var Model = __webpack_require__(2);
+var Model = __webpack_require__(3);
 var $ = __webpack_require__(17);
 var flags_1 = __webpack_require__(18);
 var physics_1 = __webpack_require__(19);
@@ -56057,69 +56148,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;// Version 0.6
 
   return SAT;
 }));
-
-
-/***/ }),
-/* 21 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-var manager_1 = __webpack_require__(3);
-var CameraManager = (function (_super) {
-    __extends(CameraManager, _super);
-    function CameraManager(camera, input) {
-        var _this = _super.call(this) || this;
-        _this.camera = camera;
-        _this.input = input;
-        return _this;
-    }
-    CameraManager.prototype.update = function (world) {
-    };
-    return CameraManager;
-}(manager_1.default));
-exports.default = CameraManager;
-
-
-/***/ }),
-/* 22 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-var manager_1 = __webpack_require__(3);
-var SpriteManager = (function (_super) {
-    __extends(SpriteManager, _super);
-    function SpriteManager(scene) {
-        return _super.call(this) || this;
-    }
-    SpriteManager.prototype.update = function (world) {
-    };
-    return SpriteManager;
-}(manager_1.default));
-exports.default = SpriteManager;
 
 
 /***/ })
