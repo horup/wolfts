@@ -101,34 +101,35 @@ export default class Sync
 
         let gridMaterial = new THREE.MeshBasicMaterial({ map: tex, overdraw: 0.5 });
         let mesh = new THREE.Mesh(gridGeometry, gridMaterial);
-        scene.add(mesh);
+      //  scene.add(mesh);
     }
 
 
     sprites:THREE.Sprite[];
-    dynamicGeometry:THREE.Geometry;
+    dynamicGeometry:THREE.BufferGeometry;
     dynamicMesh:THREE.Mesh;
-
+    max = 1024;
     initEntities(world:Model.World, scene:THREE.Scene, spritesTexture:THREE.Texture, gridTextures:THREE.Texture)
     {
         this.clearScene(scene);
         this.sprites = [];
-        this.dynamicGeometry = new THREE.Geometry();
-        
-       // this.dynamicGeometry.faces = new Array<THREE.Face3>(this.dynamicGeometry.vertices.length);
-      /*  for (let i = 0; i < this.dynamicGeometry.vertices.length; i++)
+
+        let geometry = new THREE.Geometry();
+        for (let i = 0; i < this.max; i++)
         {
-            this.dynamicGeometry.vertices[i] = new THREE.Vector3();
-        }
-        for (let i = 0; i < this.dynamicGeometry.faces.length; i+=2)
-        {
-            this.dynamicGeometry.faces.push(new THREE.Face3(i, i+1, i+2));
-            //this.dynamicGeometry.faces[i] = new THREE.Face3(0,0,0);
+            geometry.merge(new THREE.BoxGeometry(1,1,1), new THREE.Matrix4());
         }
 
-        this.dynamicGeometry.elementsNeedUpdate = true;*/
+        this.dynamicGeometry = new THREE.BufferGeometry();
+        this.dynamicGeometry.fromGeometry(geometry);
+        
+        console.log(this.dynamicGeometry.getAttribute('position'));
+        let box = new THREE.BoxGeometry(1,1,1);
+     
         this.dynamicMesh = new THREE.Mesh(this.dynamicGeometry, new THREE.MeshBasicMaterial({ map: gridTextures, overdraw: 0.5 }));
         scene.add(this.dynamicMesh);
+
+
         for (let i = 0; i < 64; i++)
         {
             let tex = spritesTexture.clone();
@@ -137,7 +138,7 @@ export default class Sync
             let sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex}));
             sp.visible = true;
             this.sprites.push(sp);
-            scene.add(sp);
+         //   scene.add(sp);
         }
     }
 
@@ -148,20 +149,11 @@ export default class Sync
             sprite.visible = false;
         }
 
-        console.log(this.dynamicGeometry.faceVertexUvs);
-
-/*        this.dynamicGeometry.vertices = [];
-        this.dynamicGeometry.faces = [];
-        this.dynamicGeometry.faceVertexUvs = [];
-        this.dynamicGeometry.elementsNeedUpdate = true;
-        this.dynamicGeometry.verticesNeedUpdate = true;
-        this.dynamicGeometry.uvsNeedUpdate = true;*/
-
-        this.dynamicGeometry.elementsNeedUpdate = true;
-        this.dynamicGeometry.verticesNeedUpdate = true;
-
+        let position = this.dynamicGeometry.getAttribute('position');
+        let uv = this.dynamicGeometry.getAttribute('uv');
+        let vi = 0;
+        let uvi = 0;
         let i = 0;
-        let v = 0;
         for (let entity of world.entities)
         {
             let spatial = entity.spatial;
@@ -220,18 +212,20 @@ export default class Sync
 
                     geometry.rotateX(Math.PI/2);
                     geometry.translate(spatial.position[0], spatial.position[1] + door.offset, 0.5);
-                    this.dynamicGeometry.merge(geometry, new THREE.Matrix4());
 
-                    /*for (let i = 0; i < geometry.vertices.length; i++)
+                    let buff = new THREE.BufferGeometry().fromGeometry(geometry);
+                    let p:any = position.array;
+                    let p2:any = buff.getAttribute('position').array;
+                    for (let i = 0; i < p2.length; i++)
                     {
-                        this.dynamicGeometry.vertices[v + i] = geometry.vertices[i];
-                    }*/
-
-                    v += geometry.vertices.length;
+                        p[vi++] = p2[i];
+                    }
                 }
             }
         }
-
+        
+        (this.dynamicGeometry.attributes as any).position.needsUpdate = true;
+       // this.dynamicGeometry.setDrawRange(0, );
      //   console.log(this.dynamicGeometry.faceVertexUvs);
     }
 
