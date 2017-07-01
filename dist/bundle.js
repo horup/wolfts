@@ -44293,11 +44293,10 @@ var Renderer = (function () {
     Renderer.prototype.syncScene = function () {
         var world = this.system.world;
         var system = this.system;
-        if (system.flags.initGrid) {
+        if (system.flags.init) {
             this.sync.initGrid(world, this.gridScene, this.textures.walls);
-        }
-        if (system.flags.initEntities) {
-            this.sync.initEntities(world, this.entitiesScene, this.textures.sprites, this.textures.walls);
+            this.sync.initSprites(world, this.entitiesScene, this.textures.sprites, this.textures.walls);
+            this.sync.initGeometry(this.entitiesScene, this.textures.walls);
         }
         this.sync.syncEntities(world);
     };
@@ -44356,112 +44355,22 @@ exports.default = Renderer;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var THREE = __webpack_require__(0);
-var Model = __webpack_require__(2);
+var Init = __webpack_require__(17);
 var Sync = (function () {
     function Sync() {
         this.attachedEntity = null;
         this.max = 1024;
     }
-    Sync.prototype.clearScene = function (scene) {
-        while (scene.children.length > 0) {
-            var child = scene.children[0];
-            if (child.material != null) {
-                if (child.material.map != null) {
-                    child.material.map.dispose();
-                }
-                child.material.dispose();
-            }
-            scene.remove(scene.children[0]);
-        }
-    };
-    Sync.prototype.initFloor = function (world, scene) {
-        var cealingMaterial = new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, side: THREE.DoubleSide });
-        var floorMaterial = new THREE.MeshBasicMaterial({ color: "#707070", overdraw: 0.5, side: THREE.DoubleSide });
-        {
-            var geometry = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
-            geometry.translate(world.grid.width / 2, -world.grid.height / 2, 0);
-            var mesh = new THREE.Mesh(geometry, floorMaterial);
-            scene.add(mesh);
-        }
-        {
-            var geometry = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
-            geometry.translate(world.grid.width / 2, -world.grid.height / 2, 1);
-            var mesh = new THREE.Mesh(geometry, cealingMaterial);
-            scene.add(mesh);
-        }
-    };
     Sync.prototype.initGrid = function (world, scene, tex) {
-        this.clearScene(scene);
-        this.initFloor(world, scene);
-        var px = 1.0 / world.map.tilesets[0].imagewidth;
-        var tileset = world.map.tilesets[0];
-        var tw = tileset.tilewidth / tileset.imagewidth - px;
-        var th = tileset.tileheight / tileset.imageheight;
-        var gridGeometry = new THREE.Geometry();
-        for (var y = 0; y < world.grid.height; y++) {
-            for (var x = 0; x < world.grid.width; x++) {
-                var tile = world.grid.getTile(x, -y);
-                if (tile != Model.Tile.Void) {
-                    var geometry = new THREE.CubeGeometry(1, 1, 1);
-                    var index = tile;
-                    var tx = (index % tileset.columns) / tileset.columns + px / 2;
-                    var ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
-                    var uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
-                    geometry.faceVertexUvs[0] = [];
-                    for (var i = 0; i < 6 * 2; i += 2) {
-                        geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
-                        geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
-                    }
-                    geometry.rotateX(Math.PI / 2);
-                    geometry.translate(x + 0.5, -y - 0.5, 0.5);
-                    gridGeometry.merge(geometry, new THREE.Matrix4());
-                }
-            }
-        }
-        for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
-            var e = _a[_i];
-            if (e.door != null) {
-                var geometry = new THREE.CubeGeometry(1, 1, 1);
-                var index = e.door.tex;
-                var tx = (index % tileset.columns) / tileset.columns + px / 2;
-                var ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
-                var uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
-                geometry.faceVertexUvs[0] = [];
-                for (var i = 0; i < 6 * 2; i += 2) {
-                    geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
-                    geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
-                }
-                geometry.rotateX(Math.PI / 2);
-                geometry.translate(e.spatial.position[0], e.spatial.position[1] + e.door.offset, 0.5);
-                // gridGeometry.merge(geometry, new THREE.Matrix4());
-            }
-        }
-        var gridMaterial = new THREE.MeshBasicMaterial({ map: tex, overdraw: 0.5 });
-        var mesh = new THREE.Mesh(gridGeometry, gridMaterial);
-        scene.add(mesh);
+        Init.scene(scene);
+        Init.floor(world, scene);
+        Init.grid(world, scene, tex);
     };
-    Sync.prototype.initEntities = function (world, scene, spritesTexture, gridTextures) {
-        this.clearScene(scene);
-        this.sprites = [];
-        var geometry = new THREE.Geometry();
-        for (var i = 0; i < this.max; i++) {
-            geometry.merge(new THREE.BoxGeometry(1, 1, 1), new THREE.Matrix4());
-        }
-        this.dynamicGeometry = new THREE.BufferGeometry();
-        this.dynamicGeometry.fromGeometry(geometry);
-        console.log(this.dynamicGeometry.getAttribute('position'));
-        var box = new THREE.BoxGeometry(1, 1, 1);
-        this.dynamicMesh = new THREE.Mesh(this.dynamicGeometry, new THREE.MeshBasicMaterial({ map: gridTextures, overdraw: 0.5, side: THREE.DoubleSide }));
-        scene.add(this.dynamicMesh);
-        for (var i = 0; i < 64; i++) {
-            var tex = spritesTexture.clone();
-            tex.uuid = tex.uuid;
-            tex.needsUpdate = true;
-            var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex }));
-            sp.visible = true;
-            this.sprites.push(sp);
-            scene.add(sp);
-        }
+    Sync.prototype.initSprites = function (world, scene, spritesTexture, gridTextures) {
+        Init.sprites(world, scene, spritesTexture, this.sprites);
+    };
+    Sync.prototype.initGeometry = function (scene, gridTexture) {
+        Init.geometry(scene, gridTexture, this.dynamicGeometry);
     };
     Sync.prototype.syncEntities = function (world) {
         for (var _i = 0, _a = this.sprites; _i < _a.length; _i++) {
@@ -44831,13 +44740,11 @@ var System = (function () {
                 world.entities.push(entity);
             }
             _this.world = world;
-            _this.flags.initEntities = true;
-            _this.flags.initGrid = true;
+            _this.flags.init = true;
         });
     };
     System.prototype.clearFlags = function () {
-        this.flags.initEntities = false;
-        this.flags.initGrid = false;
+        this.flags.init = false;
     };
     System.prototype.update = function (inputstate) {
         physics_1.default.update(this.world, inputstate);
@@ -55116,8 +55023,7 @@ return jQuery;
 Object.defineProperty(exports, "__esModule", { value: true });
 var Flags = (function () {
     function Flags() {
-        this.initEntities = false;
-        this.initGrid = false;
+        this.init = false;
     }
     return Flags;
 }());
@@ -56189,6 +56095,121 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;// Version 0.6
 
   return SAT;
 }));
+
+
+/***/ }),
+/* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var THREE = __webpack_require__(0);
+var Model = __webpack_require__(2);
+function scene(scene) {
+    while (scene.children.length > 0) {
+        var child = scene.children[0];
+        if (child.material != null) {
+            if (child.material.map != null) {
+                child.material.map.dispose();
+            }
+            child.material.dispose();
+        }
+        scene.remove(scene.children[0]);
+    }
+}
+exports.scene = scene;
+function sprites(world, scene, spritesTexture, sprites) {
+    sprites = [];
+    for (var i = 0; i < 64; i++) {
+        var tex = spritesTexture.clone();
+        tex.uuid = tex.uuid;
+        tex.needsUpdate = true;
+        var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex }));
+        sp.visible = true;
+        sprites.push(sp);
+        scene.add(sp);
+    }
+}
+exports.sprites = sprites;
+function floor(world, scene) {
+    var cealingMaterial = new THREE.MeshBasicMaterial({ color: "#383838", overdraw: 0.5, side: THREE.DoubleSide });
+    var floorMaterial = new THREE.MeshBasicMaterial({ color: "#707070", overdraw: 0.5, side: THREE.DoubleSide });
+    {
+        var geometry_1 = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
+        geometry_1.translate(world.grid.width / 2, -world.grid.height / 2, 0);
+        var mesh = new THREE.Mesh(geometry_1, floorMaterial);
+        scene.add(mesh);
+    }
+    {
+        var geometry_2 = new THREE.PlaneGeometry(world.grid.width, world.grid.height);
+        geometry_2.translate(world.grid.width / 2, -world.grid.height / 2, 1);
+        var mesh = new THREE.Mesh(geometry_2, cealingMaterial);
+        scene.add(mesh);
+    }
+}
+exports.floor = floor;
+function grid(world, scene, tex) {
+    var px = 1.0 / world.map.tilesets[0].imagewidth;
+    var tileset = world.map.tilesets[0];
+    var tw = tileset.tilewidth / tileset.imagewidth - px;
+    var th = tileset.tileheight / tileset.imageheight;
+    var gridGeometry = new THREE.Geometry();
+    for (var y = 0; y < world.grid.height; y++) {
+        for (var x = 0; x < world.grid.width; x++) {
+            var tile = world.grid.getTile(x, -y);
+            if (tile != Model.Tile.Void) {
+                var geometry_3 = new THREE.CubeGeometry(1, 1, 1);
+                var index = tile;
+                var tx = (index % tileset.columns) / tileset.columns + px / 2;
+                var ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
+                var uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
+                geometry_3.faceVertexUvs[0] = [];
+                for (var i = 0; i < 6 * 2; i += 2) {
+                    geometry_3.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
+                    geometry_3.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
+                }
+                geometry_3.rotateX(Math.PI / 2);
+                geometry_3.translate(x + 0.5, -y - 0.5, 0.5);
+                gridGeometry.merge(geometry_3, new THREE.Matrix4());
+            }
+        }
+    }
+    for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
+        var e = _a[_i];
+        if (e.door != null) {
+            var geometry_4 = new THREE.CubeGeometry(1, 1, 1);
+            var index = e.door.tex;
+            var tx = (index % tileset.columns) / tileset.columns + px / 2;
+            var ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
+            var uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
+            geometry_4.faceVertexUvs[0] = [];
+            for (var i = 0; i < 6 * 2; i += 2) {
+                geometry_4.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
+                geometry_4.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
+            }
+            geometry_4.rotateX(Math.PI / 2);
+            geometry_4.translate(e.spatial.position[0], e.spatial.position[1] + e.door.offset, 0.5);
+            // gridGeometry.merge(geometry, new THREE.Matrix4());
+        }
+    }
+    var gridMaterial = new THREE.MeshBasicMaterial({ map: tex, overdraw: 0.5 });
+    var mesh = new THREE.Mesh(gridGeometry, gridMaterial);
+    scene.add(mesh);
+}
+exports.grid = grid;
+var max = 1024;
+function geometry(scene, gridTextures, dynamicGeometry) {
+    var geometry = new THREE.Geometry();
+    for (var i = 0; i < max; i++) {
+        geometry.merge(new THREE.BoxGeometry(1, 1, 1), new THREE.Matrix4());
+    }
+    dynamicGeometry = new THREE.BufferGeometry();
+    dynamicGeometry.fromGeometry(geometry);
+    var dynamicMesh = new THREE.Mesh(dynamicGeometry, new THREE.MeshBasicMaterial({ map: gridTextures, overdraw: 0.5, side: THREE.DoubleSide }));
+    scene.add(dynamicMesh);
+}
+exports.geometry = geometry;
 
 
 /***/ })

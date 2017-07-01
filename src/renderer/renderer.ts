@@ -56,13 +56,11 @@ export default class Renderer
         let world = this.system.world;
         let system = this.system;
 
-        if (system.flags.initGrid)
+        if (system.flags.init)
         {
             this.sync.initGrid(world, this.gridScene, this.textures.walls);
-        }
-        if (system.flags.initEntities)
-        {
-            this.sync.initEntities(world, this.entitiesScene, this.textures.sprites, this.textures.walls);
+            this.sync.initSprites(world, this.entitiesScene, this.textures.sprites, this.textures.walls);
+            this.sync.initGeometry(this.entitiesScene, this.textures.walls);
         }
 
         this.sync.syncEntities(world);

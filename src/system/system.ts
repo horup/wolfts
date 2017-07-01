@@ -53,15 +53,13 @@ export default class System
             }
             
             this.world = world;
-            this.flags.initEntities = true;
-            this.flags.initGrid = true;
+            this.flags.init = true;
         });
     }
 
     clearFlags()
     {
-        this.flags.initEntities = false;
-        this.flags.initGrid = false;
+        this.flags.init = false;
     }
 
     update(inputstate:InputState)
