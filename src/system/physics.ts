@@ -20,13 +20,20 @@ export default class Physics
         }
     }
 
+    static poly = [[0,0], [0,0], [0,0], [0,0]]
     static checkCollision(x:number, y:number, r:number, grid:Model.Grid)
     {
-        let me = new SAT.Box(new SAT.Vector(x-r,y-r), r * 2, r * 2);
-        let poly = me.toPolygon();
-        for (let p of poly.points)
+        this.poly[0][0] = x - r;
+        this.poly[0][1] = y - r;
+        this.poly[1][0] = x + r;
+        this.poly[1][1] = y - r;
+        this.poly[2][0] = x + r;
+        this.poly[2][1] = y + r;
+        this.poly[3][0] = x - r;
+        this.poly[3][1] = y - r;
+        for (let p of this.poly)
         {
-            if (grid.getSolid(poly.pos.x + p.x, poly.pos.y + p.y))
+            if (grid.getSolid(p[0], p[1]))
                 return true;
         }
 
@@ -48,7 +55,7 @@ export default class Physics
                 let r = 0.25;
                 
                 let newX = x + vx;
-                if (!this.checkCollision(newX, y, r, world.grid))
+             //   if (!this.checkCollision(newX, y, r, world.grid))
                 {
                     x = newX;
                 }
