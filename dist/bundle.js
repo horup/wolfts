@@ -44325,7 +44325,7 @@ var Renderer = (function () {
         var time = new Date().getTime();
         this.resize();
         this.input.handle();
-        // this.system.update(this.input.state);
+        this.system.update(this.input.state);
         for (var _i = 0, _a = this.managers; _i < _a.length; _i++) {
             var manager = _a[_i];
             manager.update(this.system.world);
@@ -44578,6 +44578,12 @@ var ItemTypes;
     ItemTypes[ItemTypes["Demo"] = 0] = "Demo";
     ItemTypes[ItemTypes["DeathCam"] = 1] = "DeathCam";
 })(ItemTypes = exports.ItemTypes || (exports.ItemTypes = {}));
+var Player = (function () {
+    function Player() {
+    }
+    return Player;
+}());
+exports.Player = Player;
 var Creature = (function () {
     function Creature() {
         this.type = CreatureTypes.Dog;
@@ -44681,6 +44687,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+var THREE = __webpack_require__(1);
 var manager_1 = __webpack_require__(0);
 var CameraManager = (function (_super) {
     __extends(CameraManager, _super);
@@ -44691,6 +44698,20 @@ var CameraManager = (function (_super) {
         return _this;
     }
     CameraManager.prototype.update = function (world) {
+        for (var _i = 0, _a = world.entities; _i < _a.length; _i++) 
+        //if (this.attachedEntity != null)
+        {
+            var entity = _a[_i];
+            if (entity.player != null && entity.spatial != null) {
+                var spatial = entity.spatial;
+                var v = new THREE.Vector3(Math.cos(spatial.facing), Math.sin(spatial.facing));
+                this.camera.position.x = spatial.position[0];
+                this.camera.position.y = spatial.position[1];
+                var front = new THREE.Vector3(spatial.position[0], spatial.position[1], 0.5);
+                front.add(v);
+                this.camera.lookAt(front);
+            }
+        }
     };
     return CameraManager;
 }(manager_1.default));
@@ -44790,6 +44811,10 @@ var System = (function () {
                 entity.spatial.position[1] = -obj.y / map.tilesets[0].tileheight + 0.5;
                 entity.sprite = new Model.Sprite();
                 entity.sprite.type = type;
+                if (type == 50) {
+                    var player = new Model.Player();
+                    entity.player = player;
+                }
                 world.entities.push(entity);
             }
             _this.world = world;

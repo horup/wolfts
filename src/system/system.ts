@@ -49,6 +49,12 @@ export default class System
                 entity.spatial.position[1] = -obj.y / map.tilesets[0].tileheight + 0.5;
                 entity.sprite = new Model.Sprite();
                 entity.sprite.type = type;
+                if (type == 50)
+                {
+                    let player = new Model.Player();
+                    entity.player = player;
+                }
+
                 world.entities.push(entity);
             }
             

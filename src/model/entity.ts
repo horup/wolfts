@@ -19,6 +19,11 @@ export enum ItemTypes
     DeathCam
 }
 
+export class Player
+{
+
+}
+
 export class Creature
 {
     type:CreatureTypes = CreatureTypes.Dog;
@@ -44,5 +49,6 @@ export class Entity
     spatial?:Spatial;
     Creature?:Creature;
     sprite?:Sprite;
-    door:Door;
+    door?:Door;
+    player?:Player;
 }

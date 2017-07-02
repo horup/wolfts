@@ -67,7 +67,7 @@ export default class Renderer
         let time = new Date().getTime();
         this.resize();
         this.input.handle();
-       // this.system.update(this.input.state);
+        this.system.update(this.input.state);
 
         for (let manager of this.managers)
         {
