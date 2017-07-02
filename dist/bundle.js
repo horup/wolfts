@@ -44693,23 +44693,23 @@ var CameraManager = (function (_super) {
     __extends(CameraManager, _super);
     function CameraManager(camera, input) {
         var _this = _super.call(this) || this;
+        _this.v = new THREE.Vector3(Math.cos(0), Math.sin(0));
+        _this.front = new THREE.Vector3(0, 0, 0.5);
         _this.camera = camera;
         _this.input = input;
         return _this;
     }
     CameraManager.prototype.update = function (world) {
-        for (var _i = 0, _a = world.entities; _i < _a.length; _i++) 
-        //if (this.attachedEntity != null)
-        {
+        for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
             var entity = _a[_i];
             if (entity.player != null && entity.spatial != null) {
                 var spatial = entity.spatial;
-                var v = new THREE.Vector3(Math.cos(spatial.facing), Math.sin(spatial.facing));
+                this.v.set(Math.cos(spatial.facing), Math.sin(spatial.facing), 0);
                 this.camera.position.x = spatial.position[0];
                 this.camera.position.y = spatial.position[1];
-                var front = new THREE.Vector3(spatial.position[0], spatial.position[1], 0.5);
-                front.add(v);
-                this.camera.lookAt(front);
+                this.front.set(spatial.position[0], spatial.position[1], 0.5);
+                this.front.add(this.v);
+                this.camera.lookAt(this.front);
             }
         }
     };

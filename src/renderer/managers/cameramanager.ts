@@ -13,20 +13,21 @@ export default class CameraManager extends Manager
         this.input = input;
     }
     
+    v = new THREE.Vector3(Math.cos(0), Math.sin(0));
+    front = new THREE.Vector3(0, 0, 0.5);
     update(world:Model.World)
     {
         for (let entity of world.entities)
-        //if (this.attachedEntity != null)
         {
             if (entity.player != null && entity.spatial != null)
             {
                 let spatial = entity.spatial;
-                let v = new THREE.Vector3(Math.cos(spatial.facing), Math.sin(spatial.facing));
+                this.v.set(Math.cos(spatial.facing), Math.sin(spatial.facing), 0);
                 this.camera.position.x = spatial.position[0];
                 this.camera.position.y = spatial.position[1];
-                let front = new THREE.Vector3(spatial.position[0], spatial.position[1], 0.5);
-                front.add(v);
-                this.camera.lookAt(front);
+                this.front.set(spatial.position[0], spatial.position[1], 0.5);
+                this.front.add(this.v);
+                this.camera.lookAt(this.front);
             }
         }
     }
