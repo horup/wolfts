@@ -16,4 +16,9 @@ canvas {
 	z-index: 100;
 	display:block;
     font-family: monospace;
+	 user-select: none;
+        -moz-user-select: none;
+        -khtml-user-select: none;
+        -webkit-user-select: none;
+        -o-user-select: none;
 }
