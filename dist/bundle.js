@@ -55137,10 +55137,10 @@ var Physics = (function () {
         this.poly[0][0] = x - r;
         this.poly[0][1] = y - r;
         this.poly[1][0] = x + r;
-        this.poly[1][1] = y - r;
-        this.poly[2][0] = x + r;
+        this.poly[1][1] = y + r;
+        this.poly[2][0] = x - r;
         this.poly[2][1] = y + r;
-        this.poly[3][0] = x - r;
+        this.poly[3][0] = x + r;
         this.poly[3][1] = y - r;
         for (var _i = 0, _a = this.poly; _i < _a.length; _i++) {
             var p = _a[_i];
@@ -55160,8 +55160,7 @@ var Physics = (function () {
                 var y = entity.spatial.position[1];
                 var r = 0.25;
                 var newX = x + vx;
-                //   if (!this.checkCollision(newX, y, r, world.grid))
-                {
+                if (!this.checkCollision(newX, y, r, world.grid)) {
                     x = newX;
                 }
                 var newY = y + vy;
