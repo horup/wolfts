@@ -48,7 +48,6 @@ export default class SpriteManager extends Manager
         let tileset = world.map.tilesets[0];
         let tw = tileset.tilewidth / tileset.imagewidth - px;
         let th = tileset.tileheight / tileset.imageheight;
-
         if (this.length < world.entities.length)
         {
             let t = new THREE.Vector3(1, 0.5, 0);
@@ -76,6 +75,7 @@ export default class SpriteManager extends Manager
         
         this.ay.set(this.n.x, this.n.y, 0);
         this.ax.set(-this.ay.y, this.ay.x, 0);
+        let draw = 0;
         for (let entity of world.entities)
         {
             if (entity.sprite != null && entity.spatial != null)
@@ -131,9 +131,12 @@ export default class SpriteManager extends Manager
                     position[vp++] += spatial.position[1] + sprite.offset[1];
                     position[vp++] += spatial.position[2] + 0.5 + sprite.offset[2];
                 }
+
+                draw++;
             }
         }
 
+        buffer.setDrawRange(0, draw*6);
         (buffer.attributes as any).position.needsUpdate = true;
     }
 }

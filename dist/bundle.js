@@ -44797,6 +44797,7 @@ var SpriteManager = (function (_super) {
         var uvp = 0;
         this.ay.set(this.n.x, this.n.y, 0);
         this.ax.set(-this.ay.y, this.ay.x, 0);
+        var draw = 0;
         for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
             var entity = _a[_i];
             if (entity.sprite != null && entity.spatial != null) {
@@ -44840,8 +44841,10 @@ var SpriteManager = (function (_super) {
                     position[vp++] += spatial.position[1] + sprite.offset[1];
                     position[vp++] += spatial.position[2] + 0.5 + sprite.offset[2];
                 }
+                draw++;
             }
         }
+        buffer.setDrawRange(0, draw * 6);
         buffer.attributes.position.needsUpdate = true;
     };
     return SpriteManager;
