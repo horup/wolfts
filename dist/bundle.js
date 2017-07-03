@@ -44641,7 +44641,7 @@ var Grid = (function () {
     }
     Grid.prototype.getIndex = function (x, y) {
         x = Math.floor(x);
-        y = Math.floor(-y);
+        y = Math.floor(Math.abs(y));
         var i = (x % this.width) + y * this.width;
         return i;
     };
@@ -44894,10 +44894,36 @@ var System = (function () {
             var data = map.layers[0].data;
             for (var i = 0; i < data.length; i++) {
                 grid.tiles[i] = data[i] - 1;
-                if (grid.tiles[i] == 98) {
-                    var door = new Model.Door();
-                    var spatial = new Model.Spatial();
-                    var e = new Model.Entity();
+            }
+            for (var y = 0; y < grid.height; y++) {
+                for (var x = 0; x < grid.width; x++) {
+                    if (grid.getTile(x, y) == 98) {
+                        grid.setTile(x, y, -1);
+                        var door = new Model.Door();
+                        var spatial = new Model.Spatial();
+                        var e = new Model.Entity();
+                        e.spatial = spatial;
+                        e.spatial.position[0] = x + 0.5;
+                        e.spatial.position[1] = -(y + 0.5);
+                        e.door = door;
+                        e.sprite = new Model.Sprite();
+                        e.sprite.sheet = 1;
+                        e.sprite.type = 98;
+                        e.sprite.flat = true;
+                        if (grid.getTile(x - 1, y) != Model.Tile.Void)
+                            e.spatial.facing = Math.PI / 2;
+                        world.entities.push(e);
+                    }
+                }
+            }
+            /*for (let i = 0; i < data.length; i++)
+            {
+                grid.tiles[i] = data[i] - 1;
+                if (grid.tiles[i] == 98) // door
+                {
+                    let door:Model.Door = new Model.Door();
+                    let spatial:Model.Spatial = new Model.Spatial();
+                    let e = new Model.Entity();
                     e.spatial = spatial;
                     e.spatial.position[0] = i % grid.width + 0.5;
                     e.spatial.position[1] = -(Math.ceil(i / grid.width)) + 0.5;
@@ -44909,7 +44935,7 @@ var System = (function () {
                     world.entities.push(e);
                     grid.tiles[i] = Model.Tile.Void;
                 }
-            }
+            }*/
             var objects = map.layers[1].objects;
             for (var _i = 0, objects_1 = objects; _i < objects_1.length; _i++) {
                 var obj = objects_1[_i];
@@ -55284,7 +55310,10 @@ var Physics = (function () {
                 if (entity.door.offset > 1.0)
                     entity.door.offset = 0;
                 if (entity.sprite != null) {
-                    entity.sprite.offset[1] = entity.door.offset;
+                    if (entity.spatial.facing != 0)
+                        entity.sprite.offset[0] = -entity.door.offset;
+                    else
+                        entity.sprite.offset[1] = entity.door.offset;
                 }
             }
         }

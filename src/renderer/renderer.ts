@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import * as Model from '../model';
 import System from '../system';
-import Sync from './sync';
 import Input from './input';
 import * as Managers from './managers';
 export default class Renderer

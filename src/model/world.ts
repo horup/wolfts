@@ -15,7 +15,7 @@ export class Grid
     getIndex(x:number, y:number)
     {
         x = Math.floor(x);
-        y = Math.floor(-y);
+        y = Math.floor(Math.abs(y));
         let i = (x % this.width) + y * this.width;
         return i;
     }

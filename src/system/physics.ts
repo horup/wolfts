@@ -81,7 +81,10 @@ export default class Physics
 
                 if (entity.sprite != null)
                 {
-                    entity.sprite.offset[1] = entity.door.offset;
+                    if (entity.spatial.facing != 0)
+                        entity.sprite.offset[0] = -entity.door.offset;
+                    else
+                        entity.sprite.offset[1] = entity.door.offset;
                 }
             }
         }

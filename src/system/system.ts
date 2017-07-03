@@ -24,6 +24,36 @@ export default class System
             for (let i = 0; i < data.length; i++)
             {
                 grid.tiles[i] = data[i] - 1;
+            }
+
+            for (let y = 0; y < grid.height; y++)
+            {
+                for (let x = 0; x < grid.width; x++)
+                {
+                    if (grid.getTile(x, y) == 98)
+                    {
+                        grid.setTile(x, y, -1);
+                        let door:Model.Door = new Model.Door();
+                        let spatial:Model.Spatial = new Model.Spatial();
+                        let e = new Model.Entity();
+                        e.spatial = spatial;
+                        e.spatial.position[0] = x + 0.5;
+                        e.spatial.position[1] = -(y + 0.5);
+                        e.door = door;
+                        e.sprite = new Model.Sprite();
+                        e.sprite.sheet = 1;
+                        e.sprite.type = 98;
+                        e.sprite.flat = true;
+                        if (grid.getTile(x-1, y) != Model.Tile.Void)
+                            e.spatial.facing = Math.PI/2;
+                        world.entities.push(e);
+                    }
+                }
+            }
+
+            /*for (let i = 0; i < data.length; i++)
+            {
+                grid.tiles[i] = data[i] - 1;
                 if (grid.tiles[i] == 98) // door
                 {
                     let door:Model.Door = new Model.Door();
@@ -40,7 +70,7 @@ export default class System
                     world.entities.push(e);
                     grid.tiles[i] = Model.Tile.Void;
                 }
-            }
+            }*/
 
             let objects = map.layers[1].objects;
             for (let obj of objects)
