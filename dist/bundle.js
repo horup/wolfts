@@ -44606,8 +44606,14 @@ exports.Sprite = Sprite;
 var Door = (function () {
     function Door() {
         this.offset = 0;
-        this.facing = 0;
+        this.state = 0;
+        this.delay = 0;
     }
+    Door.prototype.open = function () {
+        if (this.state != -1) {
+            this.state = -1;
+        }
+    };
     return Door;
 }());
 exports.Door = Door;
@@ -44911,7 +44917,7 @@ var System = (function () {
                         e.sprite.type = 98;
                         e.sprite.flat = true;
                         if (grid.getTile(x - 1, y) != Model.Tile.Void)
-                            e.spatial.facing = Math.PI / 2;
+                            e.spatial.facing = -Math.PI / 2;
                         world.entities.push(e);
                     }
                 }
@@ -55268,7 +55274,7 @@ var Physics = (function () {
             }
         }
     };
-    Physics.checkCollision = function (x, y, r, grid) {
+    Physics.checkCollision = function (me, x, y, r, world) {
         this.poly[0][0] = x - r;
         this.poly[0][1] = y - r;
         this.poly[1][0] = x + r;
@@ -55279,8 +55285,18 @@ var Physics = (function () {
         this.poly[3][1] = y - r;
         for (var _i = 0, _a = this.poly; _i < _a.length; _i++) {
             var p = _a[_i];
-            if (grid.getSolid(p[0], p[1]))
+            if (world.grid.getSolid(p[0], p[1]))
                 return true;
+            for (var _b = 0, _c = world.entities; _b < _c.length; _b++) {
+                var entity = _c[_b];
+                if (entity != me && entity.spatial != null && entity.door != null && entity.door.offset != 1.0) {
+                    if (Math.floor(p[0]) == Math.floor(entity.spatial.position[0])
+                        && Math.floor(p[1]) == Math.floor(entity.spatial.position[1])) {
+                        entity.door.open();
+                        return true;
+                    }
+                }
+            }
         }
         return false;
     };
@@ -55295,23 +55311,45 @@ var Physics = (function () {
                 var y = entity.spatial.position[1];
                 var r = 0.25;
                 var newX = x + vx;
-                if (!this.checkCollision(newX, y, r, world.grid)) {
+                if (!this.checkCollision(entity, newX, y, r, world)) {
                     x = newX;
                 }
                 var newY = y + vy;
-                if (!this.checkCollision(x, newY, r, world.grid)) {
+                if (!this.checkCollision(entity, x, newY, r, world)) {
                     y = newY;
                 }
                 entity.spatial.position[0] = x;
                 entity.spatial.position[1] = y;
             }
             if (entity.door != null) {
-                entity.door.offset += 0.01;
-                if (entity.door.offset > 1.0)
-                    entity.door.offset = 0;
+                var speed = 0.03;
+                var door = entity.door;
+                if (door.state == 0) {
+                    if (door.delay > 0) {
+                        door.delay--;
+                    }
+                    else if (door.offset != 0) {
+                        door.state = 1;
+                    }
+                }
+                else if (door.state == -1) {
+                    door.offset += speed;
+                    if (door.offset >= 1.0) {
+                        door.offset = 1.0;
+                        door.delay = 60 * 3;
+                        door.state = 0;
+                    }
+                }
+                else if (door.state == 1) {
+                    door.offset -= speed;
+                    if (door.offset <= 0) {
+                        door.offset = 0;
+                        door.state = 0;
+                    }
+                }
                 if (entity.sprite != null) {
                     if (entity.spatial.facing != 0)
-                        entity.sprite.offset[0] = -entity.door.offset;
+                        entity.sprite.offset[0] = entity.door.offset;
                     else
                         entity.sprite.offset[1] = entity.door.offset;
                 }

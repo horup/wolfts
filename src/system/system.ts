@@ -45,7 +45,7 @@ export default class System
                         e.sprite.type = 98;
                         e.sprite.flat = true;
                         if (grid.getTile(x-1, y) != Model.Tile.Void)
-                            e.spatial.facing = Math.PI/2;
+                            e.spatial.facing = -Math.PI/2;
                         world.entities.push(e);
                     }
                 }

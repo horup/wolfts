@@ -41,7 +41,15 @@ export class Sprite
 export class Door
 {
     offset:number = 0;
-    facing:number = 0;
+    state = 0;
+    delay = 0;
+    open()
+    {
+        if (this.state != -1)
+        {
+            this.state = -1;
+        }
+    }
 }
 
 let nextId = 0;
