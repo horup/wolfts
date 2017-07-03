@@ -1,6 +1,8 @@
 ﻿body {
     margin:0px;
     padding:0px;
+    color:#ffffff;
+    font-family: monospace;
 }
 
 canvas {
@@ -15,7 +17,7 @@ canvas {
 	text-align: left;
 	z-index: 100;
 	display:block;
-    font-family: monospace;
+    
 	 user-select: none;
         -moz-user-select: none;
         -khtml-user-select: none;

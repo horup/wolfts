@@ -33,11 +33,12 @@ export default class Renderer
                 this.input = new Input();
                 this.renderer = new THREE.WebGLRenderer();
                 this.renderer.autoClear = false;
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
                 this.resize();
                 this.managers = [
                     new Managers.CameraManager(this.camera, this.input),
                     new Managers.GridManager(this.scene, this.textures.walls),
-                    new Managers.SpriteManager(this.scene)
+                    new Managers.SpriteManager(this.scene, this.textures.sprites, this.camera)
                     ] as Managers.Manager[];
                 document.body.appendChild(this.renderer.domElement);
                 this.animate();
@@ -49,12 +50,12 @@ export default class Renderer
     {
         if (this.width != window.innerWidth || this.height != window.innerHeight)
         {
+            let cam = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
+            this.camera.copy(cam);
             this.renderer.setSize(window.innerWidth, window.innerHeight);
-            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
             this.camera.up.set(0,0,1);
-            this.camera.translateZ(0.5);
-            this.camera.translateX(30.5);
-            this.camera.translateY(-54.5);
+            this.camera.position.set(0, 0, 0.5);
+            
             this.camera.lookAt(new THREE.Vector3(32, -32, 0.5));
             this.width = window.innerWidth;
             this.height = window.innerHeight;

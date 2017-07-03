@@ -65,23 +65,6 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var Manager = (function () {
-    function Manager() {
-    }
-    Manager.prototype.update = function (world) {
-    };
-    return Manager;
-}());
-exports.default = Manager;
-
-
-/***/ }),
-/* 1 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -44190,6 +44173,23 @@ function CanvasRenderer() {
 
 
 /***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var Manager = (function () {
+    function Manager() {
+    }
+    Manager.prototype.update = function (world) {
+    };
+    return Manager;
+}());
+exports.default = Manager;
+
+
+/***/ }),
 /* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -44273,7 +44273,7 @@ exports.default = renderer_1.default;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var THREE = __webpack_require__(1);
+var THREE = __webpack_require__(0);
 var input_1 = __webpack_require__(7);
 var Managers = __webpack_require__(9);
 var Renderer = (function () {
@@ -44297,11 +44297,12 @@ var Renderer = (function () {
                 _this.input = new input_1.default();
                 _this.renderer = new THREE.WebGLRenderer();
                 _this.renderer.autoClear = false;
+                _this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
                 _this.resize();
                 _this.managers = [
                     new Managers.CameraManager(_this.camera, _this.input),
                     new Managers.GridManager(_this.scene, _this.textures.walls),
-                    new Managers.SpriteManager(_this.scene)
+                    new Managers.SpriteManager(_this.scene, _this.textures.sprites, _this.camera)
                 ];
                 document.body.appendChild(_this.renderer.domElement);
                 _this.animate();
@@ -44310,12 +44311,11 @@ var Renderer = (function () {
     }
     Renderer.prototype.resize = function () {
         if (this.width != window.innerWidth || this.height != window.innerHeight) {
+            var cam = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
+            this.camera.copy(cam);
             this.renderer.setSize(window.innerWidth, window.innerHeight);
-            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
             this.camera.up.set(0, 0, 1);
-            this.camera.translateZ(0.5);
-            this.camera.translateX(30.5);
-            this.camera.translateY(-54.5);
+            this.camera.position.set(0, 0, 0.5);
             this.camera.lookAt(new THREE.Vector3(32, -32, 0.5));
             this.width = window.innerWidth;
             this.height = window.innerHeight;
@@ -44351,7 +44351,7 @@ exports.default = Renderer;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var THREE = __webpack_require__(1);
+var THREE = __webpack_require__(0);
 var inputstate_1 = __webpack_require__(8);
 var Input = (function () {
     function Input() {
@@ -44444,7 +44444,7 @@ exports.default = InputState;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var manager_1 = __webpack_require__(0);
+var manager_1 = __webpack_require__(1);
 exports.Manager = manager_1.default;
 var gridmanager_1 = __webpack_require__(10);
 exports.GridManager = gridmanager_1.default;
@@ -44471,9 +44471,9 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var THREE = __webpack_require__(1);
+var THREE = __webpack_require__(0);
 var Model = __webpack_require__(3);
-var manager_1 = __webpack_require__(0);
+var manager_1 = __webpack_require__(1);
 var GridManager = (function (_super) {
     __extends(GridManager, _super);
     function GridManager(scene, gridTexture) {
@@ -44687,8 +44687,8 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var THREE = __webpack_require__(1);
-var manager_1 = __webpack_require__(0);
+var THREE = __webpack_require__(0);
+var manager_1 = __webpack_require__(1);
 var CameraManager = (function (_super) {
     __extends(CameraManager, _super);
     function CameraManager(camera, input) {
@@ -44735,13 +44735,106 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var manager_1 = __webpack_require__(0);
+var THREE = __webpack_require__(0);
+var manager_1 = __webpack_require__(1);
 var SpriteManager = (function (_super) {
     __extends(SpriteManager, _super);
-    function SpriteManager(scene) {
-        return _super.call(this) || this;
+    function SpriteManager(scene, spriteTexture, camera) {
+        var _this = _super.call(this) || this;
+        _this.length = 0;
+        _this.planeTemplateVertices = [
+            -0.5, 0, 0.5,
+            -0.5, 0, -0.5,
+            0.5, 0, 0.5,
+            -0.5, 0, -0.5,
+            0.5, 0, -0.5,
+            0.5, 0, 0.5
+        ];
+        _this.n = new THREE.Vector3();
+        _this.ax = new THREE.Vector3();
+        _this.ay = new THREE.Vector3();
+        _this.dv = new THREE.Vector3(0, -1, 0);
+        _this.vx = new THREE.Vector3();
+        _this.vy = new THREE.Vector3();
+        _this.camera = camera;
+        _this.spriteMaterial = new THREE.MeshBasicMaterial({ map: spriteTexture, overdraw: 0.5, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 });
+        _this.group = new THREE.Group();
+        scene.add(_this.group);
+        return _this;
     }
+    SpriteManager.prototype.dispose = function () {
+        if (this.spriteMesh != null) {
+            this.spriteMesh.geometry.dispose();
+            this.group.remove(this.spriteMesh);
+        }
+    };
     SpriteManager.prototype.update = function (world) {
+        var px = 1.0 / world.map.tilesets[0].imagewidth;
+        var tileset = world.map.tilesets[0];
+        var tw = tileset.tilewidth / tileset.imagewidth - px;
+        var th = tileset.tileheight / tileset.imageheight;
+        if (this.length < world.entities.length) {
+            var t = new THREE.Vector3(1, 0.5, 0);
+            var t2 = new THREE.Vector3(0, 1, 0);
+            this.dispose();
+            this.length = world.entities.length * 2;
+            var geometry = new THREE.PlaneGeometry(1, 1);
+            var final = new THREE.Geometry();
+            for (var i = 0; i < this.length; i++) {
+                final.merge(geometry, new THREE.Matrix4());
+            }
+            var bufferGeometry = new THREE.BufferGeometry();
+            bufferGeometry.fromGeometry(final);
+            this.spriteMesh = new THREE.Mesh(bufferGeometry, this.spriteMaterial);
+            this.group.add(this.spriteMesh);
+        }
+        var buffer = this.spriteMesh.geometry;
+        var position = buffer.getAttribute('position').array;
+        var uv = buffer.getAttribute('uv').array;
+        var vp = 0;
+        var uvp = 0;
+        this.camera.getWorldDirection(this.n);
+        this.n.multiplyScalar(-1);
+        this.ay.set(this.n.x, this.n.y, 0);
+        this.ax.set(-this.ay.y, this.ay.x, 0);
+        for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
+            var entity = _a[_i];
+            if (entity.sprite != null && entity.spatial != null) {
+                var spatial = entity.spatial;
+                for (var i = 0; i < this.planeTemplateVertices.length; i++) {
+                    position[vp + i] = this.planeTemplateVertices[i];
+                }
+                var index = entity.sprite.type;
+                var tx = (index % tileset.columns) / tileset.columns + px / 2;
+                var ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
+                uv[uvp++] = tx;
+                uv[uvp++] = ty + th;
+                uv[uvp++] = tx;
+                uv[uvp++] = ty;
+                uv[uvp++] = tx + tw;
+                uv[uvp++] = ty + th;
+                uv[uvp++] = tx;
+                uv[uvp++] = ty;
+                uv[uvp++] = tx + tw;
+                uv[uvp++] = ty;
+                uv[uvp++] = tx + tw;
+                uv[uvp++] = ty + th;
+                for (var i = 0; i < this.planeTemplateVertices.length; i += 3) {
+                    this.vx.set(position[vp + i], position[vp + i + 1], 0);
+                    this.vy.set(position[vp + i], position[vp + i + 1], 0);
+                    this.vx.projectOnVector(this.ax);
+                    this.vy.projectOnVector(this.ay);
+                    position[vp + i] = this.vx.length() * Math.sign(this.vx.dot(this.ax));
+                    position[vp + i + 1] = this.vy.length() * Math.sign(this.vy.dot(this.ay));
+                }
+                for (var i = 0; i < 6; i++) {
+                    position[vp++] += spatial.position[0];
+                    position[vp++] += spatial.position[1];
+                    position[vp++] += spatial.position[2] + 0.5;
+                }
+            }
+        }
+        buffer.attributes.position.needsUpdate = true;
     };
     return SpriteManager;
 }(manager_1.default));
