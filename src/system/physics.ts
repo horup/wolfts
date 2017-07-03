@@ -78,6 +78,11 @@ export default class Physics
                 entity.door.offset += 0.01;
                 if (entity.door.offset > 1.0)
                     entity.door.offset = 0;
+
+                if (entity.sprite != null)
+                {
+                    entity.sprite.offset[1] = entity.door.offset;
+                }
             }
         }
     }

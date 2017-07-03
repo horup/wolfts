@@ -33,6 +33,8 @@ export class Creature
 export class Sprite
 {
     type:ItemTypes = ItemTypes.Demo;
+    flat:boolean = false;
+    offset=[0, 0, 0];
 }
 
 export class Door

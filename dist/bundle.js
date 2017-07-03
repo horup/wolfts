@@ -44595,6 +44595,8 @@ exports.Creature = Creature;
 var Sprite = (function () {
     function Sprite() {
         this.type = ItemTypes.Demo;
+        this.flat = false;
+        this.offset = [0, 0, 0];
     }
     return Sprite;
 }());
@@ -44793,14 +44795,20 @@ var SpriteManager = (function (_super) {
         var uv = buffer.getAttribute('uv').array;
         var vp = 0;
         var uvp = 0;
-        this.camera.getWorldDirection(this.n);
-        this.n.multiplyScalar(-1);
         this.ay.set(this.n.x, this.n.y, 0);
         this.ax.set(-this.ay.y, this.ay.x, 0);
         for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
             var entity = _a[_i];
             if (entity.sprite != null && entity.spatial != null) {
+                var sprite = entity.sprite;
                 var spatial = entity.spatial;
+                this.camera.getWorldDirection(this.n);
+                this.n.multiplyScalar(-1);
+                if (entity.sprite.flat) {
+                    this.n.set(Math.cos(spatial.facing), Math.sin(spatial.facing), 0);
+                }
+                this.ay.set(this.n.x, this.n.y, 0);
+                this.ax.set(-this.ay.y, this.ay.x, 0);
                 for (var i = 0; i < this.planeTemplateVertices.length; i++) {
                     position[vp + i] = this.planeTemplateVertices[i];
                 }
@@ -44828,9 +44836,9 @@ var SpriteManager = (function (_super) {
                     position[vp + i + 1] = this.vy.length() * Math.sign(this.vy.dot(this.ay));
                 }
                 for (var i = 0; i < 6; i++) {
-                    position[vp++] += spatial.position[0];
-                    position[vp++] += spatial.position[1];
-                    position[vp++] += spatial.position[2] + 0.5;
+                    position[vp++] += spatial.position[0] + sprite.offset[0];
+                    position[vp++] += spatial.position[1] + sprite.offset[1];
+                    position[vp++] += spatial.position[2] + 0.5 + sprite.offset[2];
                 }
             }
         }
@@ -44890,6 +44898,8 @@ var System = (function () {
                     e.spatial.position[1] = -(Math.ceil(i / grid.width)) + 0.5;
                     e.door = door;
                     e.door.tex = 98;
+                    e.sprite = new Model.Sprite();
+                    e.sprite.flat = true;
                     world.entities.push(e);
                     grid.tiles[i] = Model.Tile.Void;
                 }
@@ -55267,6 +55277,9 @@ var Physics = (function () {
                 entity.door.offset += 0.01;
                 if (entity.door.offset > 1.0)
                     entity.door.offset = 0;
+                if (entity.sprite != null) {
+                    entity.sprite.offset[1] = entity.door.offset;
+                }
             }
         }
     };

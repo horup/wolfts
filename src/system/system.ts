@@ -34,6 +34,8 @@ export default class System
                     e.spatial.position[1] = -(Math.ceil(i / grid.width)) + 0.5;
                     e.door = door;
                     e.door.tex = 98;
+                    e.sprite = new Model.Sprite();
+                    e.sprite.flat = true;
                     world.entities.push(e);
                     grid.tiles[i] = Model.Tile.Void;
                 }

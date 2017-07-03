@@ -73,15 +73,25 @@ export default class SpriteManager extends Manager
         let uv = buffer.getAttribute('uv').array as any[];
         let vp = 0;
         let uvp = 0;     
-        this.camera.getWorldDirection(this.n);
-        this.n.multiplyScalar(-1);
+        
         this.ay.set(this.n.x, this.n.y, 0);
         this.ax.set(-this.ay.y, this.ay.x, 0);
         for (let entity of world.entities)
         {
             if (entity.sprite != null && entity.spatial != null)
             {
+                let sprite = entity.sprite;
                 let spatial = entity.spatial;
+                this.camera.getWorldDirection(this.n);
+                this.n.multiplyScalar(-1);
+                if (entity.sprite.flat)
+                {
+                    this.n.set(Math.cos(spatial.facing), Math.sin(spatial.facing), 0);
+                }
+
+                this.ay.set(this.n.x, this.n.y, 0);
+                this.ax.set(-this.ay.y, this.ay.x, 0);
+                
                 for (let i = 0; i < this.planeTemplateVertices.length; i++)
                 {
                     position[vp+i] = this.planeTemplateVertices[i];
@@ -117,9 +127,9 @@ export default class SpriteManager extends Manager
 
                 for (let i = 0; i < 6; i++)
                 {
-                    position[vp++] += spatial.position[0];
-                    position[vp++] += spatial.position[1];
-                    position[vp++] += spatial.position[2] + 0.5;
+                    position[vp++] += spatial.position[0] + sprite.offset[0];
+                    position[vp++] += spatial.position[1] + sprite.offset[1];
+                    position[vp++] += spatial.position[2] + 0.5 + sprite.offset[2];
                 }
             }
         }
