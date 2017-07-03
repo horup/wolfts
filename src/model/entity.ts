@@ -32,6 +32,7 @@ export class Creature
 
 export class Sprite
 {
+    sheet:number = 0;
     type:ItemTypes = ItemTypes.Demo;
     flat:boolean = false;
     offset=[0, 0, 0];
@@ -39,7 +40,6 @@ export class Sprite
 
 export class Door
 {
-    tex:number = 0;
     offset:number = 0;
     facing:number = 0;
 }

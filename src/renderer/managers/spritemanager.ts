@@ -8,9 +8,11 @@ export default class SpriteManager extends Manager
     spriteMesh:THREE.Mesh;
     spriteMaterial:THREE.Material;
     camera:THREE.Camera;
-    constructor(scene:THREE.Scene, spriteTexture:THREE.Texture, camera:THREE.Camera)
+    sheetIndex:number;
+    constructor(scene:THREE.Scene, spriteTexture:THREE.Texture, camera:THREE.Camera, sheetIndex:number)
     {
         super();
+        this.sheetIndex = sheetIndex;
         this.camera = camera;
         this.spriteMaterial = new THREE.MeshBasicMaterial({ map: spriteTexture, overdraw: 0.5, side:THREE.DoubleSide, transparent:true, alphaTest:0.5});
         this.group = new THREE.Group();
@@ -78,7 +80,7 @@ export default class SpriteManager extends Manager
         let draw = 0;
         for (let entity of world.entities)
         {
-            if (entity.sprite != null && entity.spatial != null)
+            if (entity.sprite != null && entity.spatial != null && entity.sprite.sheet == this.sheetIndex)
             {
                 let sprite = entity.sprite;
                 let spatial = entity.spatial;

@@ -44302,7 +44302,8 @@ var Renderer = (function () {
                 _this.managers = [
                     new Managers.CameraManager(_this.camera, _this.input),
                     new Managers.GridManager(_this.scene, _this.textures.walls),
-                    new Managers.SpriteManager(_this.scene, _this.textures.sprites, _this.camera)
+                    new Managers.SpriteManager(_this.scene, _this.textures.sprites, _this.camera, 0),
+                    new Managers.SpriteManager(_this.scene, _this.textures.walls, _this.camera, 1)
                 ];
                 document.body.appendChild(_this.renderer.domElement);
                 _this.animate();
@@ -44594,6 +44595,7 @@ var Creature = (function () {
 exports.Creature = Creature;
 var Sprite = (function () {
     function Sprite() {
+        this.sheet = 0;
         this.type = ItemTypes.Demo;
         this.flat = false;
         this.offset = [0, 0, 0];
@@ -44603,7 +44605,6 @@ var Sprite = (function () {
 exports.Sprite = Sprite;
 var Door = (function () {
     function Door() {
-        this.tex = 0;
         this.offset = 0;
         this.facing = 0;
     }
@@ -44741,7 +44742,7 @@ var THREE = __webpack_require__(0);
 var manager_1 = __webpack_require__(1);
 var SpriteManager = (function (_super) {
     __extends(SpriteManager, _super);
-    function SpriteManager(scene, spriteTexture, camera) {
+    function SpriteManager(scene, spriteTexture, camera, sheetIndex) {
         var _this = _super.call(this) || this;
         _this.length = 0;
         _this.planeTemplateVertices = [
@@ -44758,6 +44759,7 @@ var SpriteManager = (function (_super) {
         _this.dv = new THREE.Vector3(0, -1, 0);
         _this.vx = new THREE.Vector3();
         _this.vy = new THREE.Vector3();
+        _this.sheetIndex = sheetIndex;
         _this.camera = camera;
         _this.spriteMaterial = new THREE.MeshBasicMaterial({ map: spriteTexture, overdraw: 0.5, side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 });
         _this.group = new THREE.Group();
@@ -44800,7 +44802,7 @@ var SpriteManager = (function (_super) {
         var draw = 0;
         for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
             var entity = _a[_i];
-            if (entity.sprite != null && entity.spatial != null) {
+            if (entity.sprite != null && entity.spatial != null && entity.sprite.sheet == this.sheetIndex) {
                 var sprite = entity.sprite;
                 var spatial = entity.spatial;
                 this.camera.getWorldDirection(this.n);
@@ -44900,8 +44902,9 @@ var System = (function () {
                     e.spatial.position[0] = i % grid.width + 0.5;
                     e.spatial.position[1] = -(Math.ceil(i / grid.width)) + 0.5;
                     e.door = door;
-                    e.door.tex = 98;
                     e.sprite = new Model.Sprite();
+                    e.sprite.sheet = 1;
+                    e.sprite.type = 98;
                     e.sprite.flat = true;
                     world.entities.push(e);
                     grid.tiles[i] = Model.Tile.Void;
