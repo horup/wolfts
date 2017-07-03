@@ -90,7 +90,7 @@ export default class Physics
 
             if (entity.door != null)
             {
-                let speed = 0.03;
+                let speed = 0.04;
                 let door = entity.door;
                 if (door.state == 0)
                 {

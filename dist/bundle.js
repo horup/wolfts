@@ -44375,7 +44375,9 @@ var Input = (function () {
         };
         document.body.onmousemove = function (e) {
             var x = e.offsetX - _this.startMouseX;
+            x *= 1.0;
             var y = e.offsetY - _this.startMouseY;
+            y *= 2;
             _this.mouseX = x / document.body.clientWidth * 2;
             _this.mouseY = y / document.body.clientHeight * 2;
         };
@@ -44395,6 +44397,9 @@ var Input = (function () {
             _this.pressed[e.keyCode] = false;
         };
     }
+    Input.prototype.clamp = function (n) {
+        return Math.min(Math.max(n, -1), 1);
+    };
     Input.prototype.handle = function () {
         var rotation = 0.05;
         if (this.pressed[37])
@@ -44413,8 +44418,8 @@ var Input = (function () {
         }
         var vx = Math.cos(this.state.angleZ) * dir;
         var vy = Math.sin(this.state.angleZ) * dir;
-        this.state.movement[0] = vx;
-        this.state.movement[1] = vy;
+        this.state.movement[0] = this.clamp(vx);
+        this.state.movement[1] = this.clamp(vy);
     };
     return Input;
 }());
@@ -55322,7 +55327,7 @@ var Physics = (function () {
                 entity.spatial.position[1] = y;
             }
             if (entity.door != null) {
-                var speed = 0.03;
+                var speed = 0.04;
                 var door = entity.door;
                 if (door.state == 0) {
                     if (door.delay > 0) {

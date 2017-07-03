@@ -25,8 +25,8 @@ export default class Input
         }
         document.body.onmousemove = (e) =>
         {
-            let x = e.offsetX - this.startMouseX;
-            let y = e.offsetY - this.startMouseY;
+            let x = e.offsetX - this.startMouseX; x*= 1.0;
+            let y = e.offsetY - this.startMouseY; y*=2;
             this.mouseX = x / document.body.clientWidth * 2;
             this.mouseY = y / document.body.clientHeight * 2;
         }
@@ -53,7 +53,10 @@ export default class Input
             this.pressed[e.keyCode] = false;
         }
     }
-
+    clamp(n:number)
+    {
+        return Math.min(Math.max(n, -1), 1);
+    }
     handle()
     {
         let rotation = 0.05;
@@ -78,7 +81,7 @@ export default class Input
 
         let vx = Math.cos(this.state.angleZ) * dir;
         let vy = Math.sin(this.state.angleZ) * dir;
-        this.state.movement[0] = vx;
-        this.state.movement[1] = vy;
+        this.state.movement[0] = this.clamp(vx);
+        this.state.movement[1] = this.clamp(vy);
     }
 }
