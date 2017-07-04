@@ -37,8 +37,8 @@ export default class Renderer
                 this.managers = [
                     new Managers.CameraManager(this.camera, this.input),
                     new Managers.GridManager(this.scene, this.textures.walls),
-                    new Managers.SpriteManager(this.scene, this.textures.sprites, this.camera, 0),
-                    new Managers.SpriteManager(this.scene, this.textures.walls, this.camera, 1)
+                    new Managers.SpriteManager(this.scene, this.textures.walls, this.camera, 0),
+                    new Managers.SpriteManager(this.scene, this.textures.sprites, this.camera, 1)
                     ] as Managers.Manager[];
                 document.body.appendChild(this.renderer.domElement);
                 this.animate();

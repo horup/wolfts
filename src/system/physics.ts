@@ -7,7 +7,7 @@ export default class Physics
     {
         for (let entity of world.entities)
         {
-            if (entity.sprite != null && entity.spatial != null && entity.sprite.type == 50)
+            if (entity.sprite != null && entity.spatial != null && entity.player != null)
             {
                 entity.spatial.facing = inputstate.angleZ;;
                 let speed = 0.1;
@@ -41,13 +41,21 @@ export default class Physics
 
             for (let entity of world.entities)
             {
-                if (entity != me && entity.spatial != null && entity.door != null && entity.door.offset != 1.0)
+                if (entity != me && entity.spatial != null)
                 {
                     if (Math.floor(p[0]) == Math.floor(entity.spatial.position[0]) 
-                     && Math.floor(p[1]) == Math.floor(entity.spatial.position[1]))
+                        && Math.floor(p[1]) == Math.floor(entity.spatial.position[1]))
                     {
-                        entity.door.open();
-                        return true;
+                        if (entity.door != null && entity.door.offset != 1.0)
+                        {
+                            entity.door.open();
+                            return true;
+                        }
+                        else if (entity.pushwall)
+                        {
+                            entity.pushwall.push();
+                            return true;
+                        }
                     }
                 }
             }

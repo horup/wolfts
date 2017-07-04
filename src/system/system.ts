@@ -41,7 +41,7 @@ export default class System
                         e.spatial.position[1] = -(y + 0.5);
                         e.door = door;
                         e.sprite = new Model.Sprite();
-                        e.sprite.sheet = 1;
+                        e.sprite.sheet = 0;
                         e.sprite.type = 98;
                         e.sprite.flat = true;
                         if (grid.getTile(x-1, y) != Model.Tile.Void)
@@ -75,19 +75,28 @@ export default class System
             let objects = map.layers[1].objects;
             for (let obj of objects)
             {
-                let type = obj.gid - 256 - 1;
+               // let type = obj.gid - 256 - 1;
                 let entity = new Model.Entity();
                 entity.spatial = new Model.Spatial();
                 entity.spatial.position[0] = obj.x / map.tilesets[0].tilewidth + 0.5;
                 entity.spatial.position[1] = -obj.y / map.tilesets[0].tileheight + 0.5;
                 entity.sprite = new Model.Sprite();
-                entity.sprite.type = type;
-                if (type == 50)
+                let type = obj.gid - 1;
+                let sheet = Math.floor(type / 256);
+                entity.sprite.type = type % 256;
+                entity.sprite.sheet = sheet;
+                if (type == 306)
                 {
                     let player = new Model.Player();
                     entity.player = player;
                 }
-
+                else if (type < 256)
+                {
+                    let pushwall = new Model.Pushwall();
+                    entity.sprite.flat = true;
+                    entity.pushwall = pushwall;
+                }
+                
                 world.entities.push(entity);
             }
             
@@ -118,10 +127,9 @@ export default class System
             for (let e of this.world.entities)
             {
                 if (e.door != null)
-                {
                     Object.setPrototypeOf(e.door, Model.Door.prototype);
-                    console.log("t");
-                }
+                if (e.pushwall != null)
+                    Object.setPrototypeOf(e.pushwall, Model.Pushwall.prototype);
             }
         }
     }

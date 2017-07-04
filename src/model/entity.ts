@@ -38,6 +38,14 @@ export class Sprite
     offset=[0, 0, 0];
 }
 
+export class Pushwall
+{
+    push()
+    {
+        
+    }
+}
+
 export class Door
 {
     offset:number = 0;
@@ -57,8 +65,9 @@ export class Entity
 {
     id:number = nextId++;
     spatial?:Spatial;
-    Creature?:Creature;
+    creature?:Creature;
     sprite?:Sprite;
     door?:Door;
     player?:Player;
+    pushwall?:Pushwall;
 }

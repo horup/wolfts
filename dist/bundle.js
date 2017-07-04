@@ -44195,22 +44195,6 @@ exports.default = Manager;
 
 "use strict";
 
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-Object.defineProperty(exports, "__esModule", { value: true });
-__export(__webpack_require__(3));
-__export(__webpack_require__(11));
-__export(__webpack_require__(12));
-__export(__webpack_require__(3));
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
 Object.defineProperty(exports, "__esModule", { value: true });
 var Layer = (function () {
     function Layer() {
@@ -44238,6 +44222,22 @@ var Level = (function () {
     return Level;
 }());
 exports.Level = Level;
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+__export(__webpack_require__(2));
+__export(__webpack_require__(11));
+__export(__webpack_require__(12));
+__export(__webpack_require__(2));
 
 
 /***/ }),
@@ -44302,8 +44302,8 @@ var Renderer = (function () {
                 _this.managers = [
                     new Managers.CameraManager(_this.camera, _this.input),
                     new Managers.GridManager(_this.scene, _this.textures.walls),
-                    new Managers.SpriteManager(_this.scene, _this.textures.sprites, _this.camera, 0),
-                    new Managers.SpriteManager(_this.scene, _this.textures.walls, _this.camera, 1)
+                    new Managers.SpriteManager(_this.scene, _this.textures.walls, _this.camera, 0),
+                    new Managers.SpriteManager(_this.scene, _this.textures.sprites, _this.camera, 1)
                 ];
                 document.body.appendChild(_this.renderer.domElement);
                 _this.animate();
@@ -44490,7 +44490,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var THREE = __webpack_require__(0);
-var Model = __webpack_require__(2);
+var Model = __webpack_require__(3);
 var manager_1 = __webpack_require__(1);
 var GridManager = (function (_super) {
     __extends(GridManager, _super);
@@ -44620,6 +44620,14 @@ var Sprite = (function () {
     return Sprite;
 }());
 exports.Sprite = Sprite;
+var Pushwall = (function () {
+    function Pushwall() {
+    }
+    Pushwall.prototype.push = function () {
+    };
+    return Pushwall;
+}());
+exports.Pushwall = Pushwall;
 var Door = (function () {
     function Door() {
         this.offset = 0;
@@ -44651,7 +44659,7 @@ exports.Entity = Entity;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var map_1 = __webpack_require__(3);
+var map_1 = __webpack_require__(2);
 var Tile;
 (function (Tile) {
     Tile[Tile["Void"] = -1] = "Void";
@@ -44895,7 +44903,7 @@ exports.default = system_1.default;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var Model = __webpack_require__(2);
+var Model = __webpack_require__(3);
 var $ = __webpack_require__(17);
 var flags_1 = __webpack_require__(18);
 var physics_1 = __webpack_require__(19);
@@ -44931,7 +44939,7 @@ var System = (function () {
                         e.spatial.position[1] = -(y + 0.5);
                         e.door = door;
                         e.sprite = new Model.Sprite();
-                        e.sprite.sheet = 1;
+                        e.sprite.sheet = 0;
                         e.sprite.type = 98;
                         e.sprite.flat = true;
                         if (grid.getTile(x - 1, y) != Model.Tile.Void)
@@ -44963,16 +44971,24 @@ var System = (function () {
             var objects = map.layers[1].objects;
             for (var _i = 0, objects_1 = objects; _i < objects_1.length; _i++) {
                 var obj = objects_1[_i];
-                var type = obj.gid - 256 - 1;
+                // let type = obj.gid - 256 - 1;
                 var entity = new Model.Entity();
                 entity.spatial = new Model.Spatial();
                 entity.spatial.position[0] = obj.x / map.tilesets[0].tilewidth + 0.5;
                 entity.spatial.position[1] = -obj.y / map.tilesets[0].tileheight + 0.5;
                 entity.sprite = new Model.Sprite();
-                entity.sprite.type = type;
-                if (type == 50) {
+                var type = obj.gid - 1;
+                var sheet = Math.floor(type / 256);
+                entity.sprite.type = type % 256;
+                entity.sprite.sheet = sheet;
+                if (type == 306) {
                     var player = new Model.Player();
                     entity.player = player;
+                }
+                else if (type < 256) {
+                    var pushwall = new Model.Pushwall();
+                    entity.sprite.flat = true;
+                    entity.pushwall = pushwall;
                 }
                 world.entities.push(entity);
             }
@@ -44995,10 +45011,10 @@ var System = (function () {
             Object.setPrototypeOf(this.world.grid, Model.Grid.prototype);
             for (var _i = 0, _a = this.world.entities; _i < _a.length; _i++) {
                 var e = _a[_i];
-                if (e.door != null) {
+                if (e.door != null)
                     Object.setPrototypeOf(e.door, Model.Door.prototype);
-                    console.log("t");
-                }
+                if (e.pushwall != null)
+                    Object.setPrototypeOf(e.pushwall, Model.Pushwall.prototype);
             }
         }
     };
@@ -55296,7 +55312,7 @@ var Physics = (function () {
     Physics.updateInput = function (world, inputstate) {
         for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
             var entity = _a[_i];
-            if (entity.sprite != null && entity.spatial != null && entity.sprite.type == 50) {
+            if (entity.sprite != null && entity.spatial != null && entity.player != null) {
                 entity.spatial.facing = inputstate.angleZ;
                 ;
                 var speed = 0.1;
@@ -55323,11 +55339,17 @@ var Physics = (function () {
                 return true;
             for (var _b = 0, _c = world.entities; _b < _c.length; _b++) {
                 var entity = _c[_b];
-                if (entity != me && entity.spatial != null && entity.door != null && entity.door.offset != 1.0) {
+                if (entity != me && entity.spatial != null) {
                     if (Math.floor(p[0]) == Math.floor(entity.spatial.position[0])
                         && Math.floor(p[1]) == Math.floor(entity.spatial.position[1])) {
-                        entity.door.open();
-                        return true;
+                        if (entity.door != null && entity.door.offset != 1.0) {
+                            entity.door.open();
+                            return true;
+                        }
+                        else if (entity.pushwall) {
+                            entity.pushwall.push();
+                            return true;
+                        }
                     }
                 }
             }
