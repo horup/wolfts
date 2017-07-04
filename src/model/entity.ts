@@ -42,7 +42,7 @@ export class Door
 {
     offset:number = 0;
     state = 0;
-    delay = 0;
+    delay = 0; 
     open()
     {
         if (this.state != -1)

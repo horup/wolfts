@@ -44195,6 +44195,22 @@ exports.default = Manager;
 
 "use strict";
 
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+__export(__webpack_require__(3));
+__export(__webpack_require__(11));
+__export(__webpack_require__(12));
+__export(__webpack_require__(3));
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
 Object.defineProperty(exports, "__esModule", { value: true });
 var Layer = (function () {
     function Layer() {
@@ -44222,22 +44238,6 @@ var Level = (function () {
     return Level;
 }());
 exports.Level = Level;
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-Object.defineProperty(exports, "__esModule", { value: true });
-__export(__webpack_require__(2));
-__export(__webpack_require__(11));
-__export(__webpack_require__(12));
-__export(__webpack_require__(2));
 
 
 /***/ }),
@@ -44420,6 +44420,16 @@ var Input = (function () {
         var vy = Math.sin(this.state.angleZ) * dir;
         this.state.movement[0] = this.clamp(vx);
         this.state.movement[1] = this.clamp(vy);
+        if (this.pressed[53]) {
+            this.pressed[53] = undefined;
+            console.log('save state');
+            this.state.saveState = true;
+        }
+        else if (this.pressed[54]) {
+            this.pressed[54] = undefined;
+            console.log('load state');
+            this.state.loadState = true;
+        }
     };
     return Input;
 }());
@@ -44437,6 +44447,8 @@ var InputState = (function () {
     function InputState() {
         this.angleZ = 0;
         this.movement = [0, 0];
+        this.saveState = false;
+        this.loadState = false;
     }
     return InputState;
 }());
@@ -44478,7 +44490,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var THREE = __webpack_require__(0);
-var Model = __webpack_require__(3);
+var Model = __webpack_require__(2);
 var manager_1 = __webpack_require__(1);
 var GridManager = (function (_super) {
     __extends(GridManager, _super);
@@ -44639,7 +44651,7 @@ exports.Entity = Entity;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var map_1 = __webpack_require__(2);
+var map_1 = __webpack_require__(3);
 var Tile;
 (function (Tile) {
     Tile[Tile["Void"] = -1] = "Void";
@@ -44883,7 +44895,7 @@ exports.default = system_1.default;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var Model = __webpack_require__(3);
+var Model = __webpack_require__(2);
 var $ = __webpack_require__(17);
 var flags_1 = __webpack_require__(18);
 var physics_1 = __webpack_require__(19);
@@ -44891,6 +44903,7 @@ var System = (function () {
     function System() {
         this.flags = new flags_1.default();
         this.world = new Model.World();
+        this.json = null;
     }
     System.prototype.loadMap = function (url) {
         var _this = this;
@@ -44972,6 +44985,22 @@ var System = (function () {
     };
     System.prototype.update = function (inputstate) {
         physics_1.default.update(this.world, inputstate);
+        if (inputstate.saveState) {
+            inputstate.saveState = false;
+            this.json = JSON.stringify(this.world);
+        }
+        else if (inputstate.loadState) {
+            inputstate.loadState = false;
+            this.world = JSON.parse(this.json);
+            Object.setPrototypeOf(this.world.grid, Model.Grid.prototype);
+            for (var _i = 0, _a = this.world.entities; _i < _a.length; _i++) {
+                var e = _a[_i];
+                if (e.door != null) {
+                    Object.setPrototypeOf(e.door, Model.Door.prototype);
+                    console.log("t");
+                }
+            }
+        }
     };
     return System;
 }());

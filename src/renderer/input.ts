@@ -83,5 +83,18 @@ export default class Input
         let vy = Math.sin(this.state.angleZ) * dir;
         this.state.movement[0] = this.clamp(vx);
         this.state.movement[1] = this.clamp(vy);
+
+        if (this.pressed[53]) // 5
+        {
+            this.pressed[53] = undefined;
+            console.log('save state');
+            this.state.saveState = true;
+        }
+        else if (this.pressed[54]) // 6
+        {
+            this.pressed[54] = undefined;
+            console.log('load state');
+            this.state.loadState = true;
+        }
     }
 }

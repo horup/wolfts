@@ -100,9 +100,29 @@ export default class System
     {
         this.flags.init = false;
     }
-
+    json:string = null;
     update(inputstate:InputState)
     {
         Physics.update(this.world, inputstate);
+
+        if (inputstate.saveState)
+        {
+            inputstate.saveState = false;
+            this.json = JSON.stringify(this.world);
+        }
+        else if (inputstate.loadState)
+        {
+            inputstate.loadState = false;
+            this.world = JSON.parse(this.json);
+            Object.setPrototypeOf(this.world.grid, Model.Grid.prototype);
+            for (let e of this.world.entities)
+            {
+                if (e.door != null)
+                {
+                    Object.setPrototypeOf(e.door, Model.Door.prototype);
+                    console.log("t");
+                }
+            }
+        }
     }
 }
