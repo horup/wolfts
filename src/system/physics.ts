@@ -20,22 +20,29 @@ export default class Physics
         }
     }
 
-    static poly = [[0,0], [0,0], [0,0], [0,0]]
+    static poly = [[0,0], [0,0], [0,0], [0,0]];
+    static poly2 = [[0,0], [0,0], [0,0], [0,0]];
+
+    static setPoly(poly:number[][], x:number, y:number, r:number, dx:number, dy:number)
+    {
+        poly[0][0] = x - r * dx;
+        poly[0][1] = y - r * dy;
+
+        poly[1][0] = x + r * dx;
+        poly[1][1] = y + r * dy;
+        
+        poly[2][0] = x - r * dx;
+        poly[2][1] = y + r * dy;
+        
+        poly[3][0] = x + r * dx;
+        poly[3][1] = y - r * dy;
+    }
+
     static checkCollision(me:Model.Entity, x:number, y:number, r:number, ox:number, oy:number, world:Model.World)
     {
-        let dx = (ox - x) != 0 ? 0.95 : 0;
-        let dy = (oy - y) != 0 ? 0.95 : 0;
-        this.poly[0][0] = x - r * dx;
-        this.poly[0][1] = y - r * dy;
-
-        this.poly[1][0] = x + r * dx;
-        this.poly[1][1] = y + r * dy;
-        
-        this.poly[2][0] = x - r * dx;
-        this.poly[2][1] = y + r * dy;
-        
-        this.poly[3][0] = x + r * dx;
-        this.poly[3][1] = y - r * dy;
+        let dx = 0.95;
+        let dy = 0.95;
+        this.setPoly(this.poly, x, y, r, dx, dy);
         for (let p of this.poly)
         {
             if (world.grid.getSolid(p[0], p[1]))
@@ -45,18 +52,24 @@ export default class Physics
             {
                 if (entity != me && entity.spatial != null)
                 {
-                    if (Math.floor(p[0]) == Math.floor(entity.spatial.position[0]) 
-                        && Math.floor(p[1]) == Math.floor(entity.spatial.position[1]))
+                    this.setPoly(this.poly2, entity.spatial.position[0], entity.spatial.position[1], entity.spatial.radius, dx, dy );
+                    for (let p2 of this.poly2)
                     {
-                        if (entity.door != null && entity.door.offset != 1.0)
+                        if (Math.floor(p[0]) == Math.floor(p2[0]) 
+                        &&  Math.floor(p[1]) == Math.floor(p2[1]))
                         {
-                            entity.door.open();
-                            return true;
-                        }
-                        else if (entity.pushwall)
-                        {
-                            entity.pushwall.push(entity, me);
-                            return true;
+                            if (entity.door != null && entity.door.offset != 1.0)
+                            {
+                                entity.door.open();
+                                return true;
+                            }
+                            else if (entity.pushwall)
+                            {
+                                entity.pushwall.push(entity, me);
+                                return true;
+                            }
+
+                            break;
                         }
                     }
                 }

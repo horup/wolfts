@@ -55361,17 +55361,20 @@ var Physics = (function () {
             }
         }
     };
+    Physics.setPoly = function (poly, x, y, r, dx, dy) {
+        poly[0][0] = x - r * dx;
+        poly[0][1] = y - r * dy;
+        poly[1][0] = x + r * dx;
+        poly[1][1] = y + r * dy;
+        poly[2][0] = x - r * dx;
+        poly[2][1] = y + r * dy;
+        poly[3][0] = x + r * dx;
+        poly[3][1] = y - r * dy;
+    };
     Physics.checkCollision = function (me, x, y, r, ox, oy, world) {
-        var dx = (ox - x) != 0 ? 0.95 : 0;
-        var dy = (oy - y) != 0 ? 0.95 : 0;
-        this.poly[0][0] = x - r * dx;
-        this.poly[0][1] = y - r * dy;
-        this.poly[1][0] = x + r * dx;
-        this.poly[1][1] = y + r * dy;
-        this.poly[2][0] = x - r * dx;
-        this.poly[2][1] = y + r * dy;
-        this.poly[3][0] = x + r * dx;
-        this.poly[3][1] = y - r * dy;
+        var dx = 0.95;
+        var dy = 0.95;
+        this.setPoly(this.poly, x, y, r, dx, dy);
         for (var _i = 0, _a = this.poly; _i < _a.length; _i++) {
             var p = _a[_i];
             if (world.grid.getSolid(p[0], p[1]))
@@ -55379,15 +55382,20 @@ var Physics = (function () {
             for (var _b = 0, _c = world.entities; _b < _c.length; _b++) {
                 var entity = _c[_b];
                 if (entity != me && entity.spatial != null) {
-                    if (Math.floor(p[0]) == Math.floor(entity.spatial.position[0])
-                        && Math.floor(p[1]) == Math.floor(entity.spatial.position[1])) {
-                        if (entity.door != null && entity.door.offset != 1.0) {
-                            entity.door.open();
-                            return true;
-                        }
-                        else if (entity.pushwall) {
-                            entity.pushwall.push(entity, me);
-                            return true;
+                    this.setPoly(this.poly2, entity.spatial.position[0], entity.spatial.position[1], entity.spatial.radius, dx, dy);
+                    for (var _d = 0, _e = this.poly2; _d < _e.length; _d++) {
+                        var p2 = _e[_d];
+                        if (Math.floor(p[0]) == Math.floor(p2[0])
+                            && Math.floor(p[1]) == Math.floor(p2[1])) {
+                            if (entity.door != null && entity.door.offset != 1.0) {
+                                entity.door.open();
+                                return true;
+                            }
+                            else if (entity.pushwall) {
+                                entity.pushwall.push(entity, me);
+                                return true;
+                            }
+                            break;
                         }
                     }
                 }
@@ -55475,6 +55483,7 @@ var Physics = (function () {
     return Physics;
 }());
 Physics.poly = [[0, 0], [0, 0], [0, 0], [0, 0]];
+Physics.poly2 = [[0, 0], [0, 0], [0, 0], [0, 0]];
 exports.default = Physics;
 
 
