@@ -95,6 +95,7 @@ export default class System
                     let pushwall = new Model.Pushwall();
                     entity.sprite.flat = true;
                     entity.pushwall = pushwall;
+                    entity.sprite = null;
                 }
                 
                 world.entities.push(entity);
@@ -118,9 +119,11 @@ export default class System
         {
             inputstate.saveState = false;
             this.json = JSON.stringify(this.world);
+            localStorage.setItem('state1', this.json);
         }
         else if (inputstate.loadState)
         {
+            this.json = localStorage.getItem('state1');
             inputstate.loadState = false;
             this.world = JSON.parse(this.json);
             Object.setPrototypeOf(this.world.grid, Model.Grid.prototype);
