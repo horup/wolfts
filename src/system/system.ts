@@ -95,7 +95,9 @@ export default class System
                     let pushwall = new Model.Pushwall();
                     entity.sprite.flat = true;
                     entity.pushwall = pushwall;
-                    entity.sprite = null;
+                    entity.block = new Model.Block();
+                    entity.block.index = entity.sprite.type;
+                    entity.block.sheet = entity.sprite.sheet;
                 }
                 
                 world.entities.push(entity);
@@ -113,15 +115,7 @@ export default class System
     json:string = null;
     update(inputstate:InputState)
     {
-        Physics.update(this.world, inputstate);
-
-        if (inputstate.saveState)
-        {
-            inputstate.saveState = false;
-            this.json = JSON.stringify(this.world);
-            localStorage.setItem('state1', this.json);
-        }
-        else if (inputstate.loadState)
+        if (inputstate.loadState)
         {
             this.json = localStorage.getItem('state1');
             inputstate.loadState = false;
@@ -133,7 +127,21 @@ export default class System
                     Object.setPrototypeOf(e.door, Model.Door.prototype);
                 if (e.pushwall != null)
                     Object.setPrototypeOf(e.pushwall, Model.Pushwall.prototype);
+
+                if (e.player != null)
+                {
+                    inputstate.angleZ = e.spatial.facing;
+                }
             }
+        }
+
+        Physics.update(this.world, inputstate);
+
+        if (inputstate.saveState)
+        {
+            inputstate.saveState = false;
+            this.json = JSON.stringify(this.world);
+            localStorage.setItem('state1', this.json);
         }
     }
 }
