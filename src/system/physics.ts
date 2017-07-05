@@ -21,19 +21,21 @@ export default class Physics
     }
 
     static poly = [[0,0], [0,0], [0,0], [0,0]]
-    static checkCollision(me:Model.Entity, x:number, y:number, r:number, world:Model.World)
+    static checkCollision(me:Model.Entity, x:number, y:number, r:number, ox:number, oy:number, world:Model.World)
     {
-        this.poly[0][0] = x - r;
-        this.poly[0][1] = y - r;
+        let dx = (ox - x) != 0 ? 0.95 : 0;
+        let dy = (oy - y) != 0 ? 0.95 : 0;
+        this.poly[0][0] = x - r * dx;
+        this.poly[0][1] = y - r * dy;
 
-        this.poly[1][0] = x + r;
-        this.poly[1][1] = y + r;
+        this.poly[1][0] = x + r * dx;
+        this.poly[1][1] = y + r * dy;
         
-        this.poly[2][0] = x - r;
-        this.poly[2][1] = y + r;
+        this.poly[2][0] = x - r * dx;
+        this.poly[2][1] = y + r * dy;
         
-        this.poly[3][0] = x + r;
-        this.poly[3][1] = y - r;
+        this.poly[3][0] = x + r * dx;
+        this.poly[3][1] = y - r * dy;
         for (let p of this.poly)
         {
             if (world.grid.getSolid(p[0], p[1]))
@@ -53,7 +55,7 @@ export default class Physics
                         }
                         else if (entity.pushwall)
                         {
-                            entity.pushwall.push();
+                            entity.pushwall.push(entity, me);
                             return true;
                         }
                     }
@@ -78,18 +80,30 @@ export default class Physics
                 let vy = entity.spatial.velocity[1];
                 let x = entity.spatial.position[0];
                 let y = entity.spatial.position[1];
-                let r = 0.25;
+                let r = entity.spatial.radius;
                 
                 let newX = x + vx;
-                if (!this.checkCollision(entity, newX, y, r, world))
+                let col = true;
+                if (!this.checkCollision(entity, newX, y, r, x, y, world))
                 {
                     x = newX;
+                    col = false;
                 }
 
                 let newY = y + vy;
-                if (!this.checkCollision(entity, x, newY, r, world))
+                if (!this.checkCollision(entity, x, newY, r, x, y, world))
                 {
                     y = newY;
+                    col = col ? true : false;
+                }
+
+                if (col && entity.pushwall != null)
+                {
+                    entity.pushwall.state = Model.PushwallState.Settled;
+                    entity.spatial.velocity[0] = 0;
+                    entity.spatial.velocity[1] = 0;
+                    entity.spatial.velocity[2] = 0;
+                    console.log('settled');
                 }
 
                 entity.spatial.position[0] = x;
@@ -137,6 +151,20 @@ export default class Physics
                         entity.sprite.offset[0] = entity.door.offset;
                     else
                         entity.sprite.offset[1] = entity.door.offset;
+                }
+            }
+
+            if (entity.pushwall != null)
+            {
+                let spatial = entity.spatial;
+                let pushwall = entity.pushwall;
+                if (pushwall.state == Model.PushwallState.Triggered)
+                {
+                    let speed = 0.01;
+                    spatial.velocity[0] = pushwall.direction[0] * speed;
+                    spatial.velocity[1] = pushwall.direction[1] * speed;
+                    //spatial.position[0] += pushwall.direction[0] * speed;
+                    //spatial.position[1] += pushwall.direction[1] * speed;
                 }
             }
         }

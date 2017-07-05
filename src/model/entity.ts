@@ -1,6 +1,6 @@
 export class Spatial
 {
-    radius:number = 0;
+    radius:number = 0.25;
     position:number[] = [0,0,0];
     velocity:number[] = [0,0,0];
     facing:number = 0;
@@ -38,11 +38,30 @@ export class Sprite
     offset=[0, 0, 0];
 }
 
+export class Block
+{
+    sheet:number = 0;
+    index:number = 0;
+}
+
+export enum PushwallState
+{
+    NotTriggered,
+    Triggered,
+    Settled
+}
 export class Pushwall
 {
-    push()
+    direction = [0,0,0];
+    state = PushwallState.NotTriggered;
+    push(me:Entity, who:Entity)
     {
-        
+        if (this.state == PushwallState.NotTriggered)
+        {
+            this.direction[0] = Math.floor(me.spatial.position[0]) - Math.floor(who.spatial.position[0]);
+            this.direction[1] = Math.floor(me.spatial.position[1]) - Math.floor(who.spatial.position[1]);
+            this.state = PushwallState.Triggered;
+        }
     }
 }
 
@@ -70,4 +89,5 @@ export class Entity
     door?:Door;
     player?:Player;
     pushwall?:Pushwall;
+    block?:Block;
 }

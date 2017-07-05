@@ -39,6 +39,7 @@ export default class System
                         e.spatial = spatial;
                         e.spatial.position[0] = x + 0.5;
                         e.spatial.position[1] = -(y + 0.5);
+                        e.spatial.position[2] = 0.5;
                         e.door = door;
                         e.sprite = new Model.Sprite();
                         e.sprite.sheet = 0;
@@ -80,6 +81,7 @@ export default class System
                 entity.spatial = new Model.Spatial();
                 entity.spatial.position[0] = obj.x / map.tilesets[0].tilewidth + 0.5;
                 entity.spatial.position[1] = -obj.y / map.tilesets[0].tileheight + 0.5;
+                entity.spatial.position[2] = 0.5;
                 entity.sprite = new Model.Sprite();
                 let type = obj.gid - 1;
                 let sheet = Math.floor(type / 256);
@@ -98,6 +100,8 @@ export default class System
                     entity.block = new Model.Block();
                     entity.block.index = entity.sprite.type;
                     entity.block.sheet = entity.sprite.sheet;
+                    entity.spatial.radius = 0.5;
+                    entity.sprite = null;
                 }
                 
                 world.entities.push(entity);

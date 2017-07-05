@@ -37,6 +37,7 @@ export default class Renderer
                 this.managers = [
                     new Managers.CameraManager(this.camera, this.input),
                     new Managers.GridManager(this.scene, this.textures.walls),
+                    new Managers.BlockManager(this.scene, this.textures.walls, 0),
                     new Managers.SpriteManager(this.scene, this.textures.walls, this.camera, 0),
                     new Managers.SpriteManager(this.scene, this.textures.sprites, this.camera, 1)
                     ] as Managers.Manager[];

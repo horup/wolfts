@@ -44302,6 +44302,7 @@ var Renderer = (function () {
                 _this.managers = [
                     new Managers.CameraManager(_this.camera, _this.input),
                     new Managers.GridManager(_this.scene, _this.textures.walls),
+                    new Managers.BlockManager(_this.scene, _this.textures.walls, 0),
                     new Managers.SpriteManager(_this.scene, _this.textures.walls, _this.camera, 0),
                     new Managers.SpriteManager(_this.scene, _this.textures.sprites, _this.camera, 1)
                 ];
@@ -44470,6 +44471,8 @@ var cameramanager_1 = __webpack_require__(13);
 exports.CameraManager = cameramanager_1.default;
 var spritemanager_1 = __webpack_require__(14);
 exports.SpriteManager = spritemanager_1.default;
+var blockmanager_1 = __webpack_require__(20);
+exports.BlockManager = blockmanager_1.default;
 
 
 /***/ }),
@@ -44577,7 +44580,7 @@ exports.default = GridManager;
 Object.defineProperty(exports, "__esModule", { value: true });
 var Spatial = (function () {
     function Spatial() {
-        this.radius = 0;
+        this.radius = 0.25;
         this.position = [0, 0, 0];
         this.velocity = [0, 0, 0];
         this.facing = 0;
@@ -44620,10 +44623,31 @@ var Sprite = (function () {
     return Sprite;
 }());
 exports.Sprite = Sprite;
+var Block = (function () {
+    function Block() {
+        this.sheet = 0;
+        this.index = 0;
+    }
+    return Block;
+}());
+exports.Block = Block;
+var PushwallState;
+(function (PushwallState) {
+    PushwallState[PushwallState["NotTriggered"] = 0] = "NotTriggered";
+    PushwallState[PushwallState["Triggered"] = 1] = "Triggered";
+    PushwallState[PushwallState["Settled"] = 2] = "Settled";
+})(PushwallState = exports.PushwallState || (exports.PushwallState = {}));
 var Pushwall = (function () {
     function Pushwall() {
+        this.direction = [0, 0, 0];
+        this.state = PushwallState.NotTriggered;
     }
-    Pushwall.prototype.push = function () {
+    Pushwall.prototype.push = function (me, who) {
+        if (this.state == PushwallState.NotTriggered) {
+            this.direction[0] = Math.floor(me.spatial.position[0]) - Math.floor(who.spatial.position[0]);
+            this.direction[1] = Math.floor(me.spatial.position[1]) - Math.floor(who.spatial.position[1]);
+            this.state = PushwallState.Triggered;
+        }
     };
     return Pushwall;
 }());
@@ -44872,7 +44896,7 @@ var SpriteManager = (function (_super) {
                 for (var i = 0; i < 6; i++) {
                     position[vp++] += spatial.position[0] + sprite.offset[0];
                     position[vp++] += spatial.position[1] + sprite.offset[1];
-                    position[vp++] += spatial.position[2] + 0.5 + sprite.offset[2];
+                    position[vp++] += spatial.position[2] + sprite.offset[2];
                 }
                 draw++;
             }
@@ -44937,6 +44961,7 @@ var System = (function () {
                         e.spatial = spatial;
                         e.spatial.position[0] = x + 0.5;
                         e.spatial.position[1] = -(y + 0.5);
+                        e.spatial.position[2] = 0.5;
                         e.door = door;
                         e.sprite = new Model.Sprite();
                         e.sprite.sheet = 0;
@@ -44976,6 +45001,7 @@ var System = (function () {
                 entity.spatial = new Model.Spatial();
                 entity.spatial.position[0] = obj.x / map.tilesets[0].tilewidth + 0.5;
                 entity.spatial.position[1] = -obj.y / map.tilesets[0].tileheight + 0.5;
+                entity.spatial.position[2] = 0.5;
                 entity.sprite = new Model.Sprite();
                 var type = obj.gid - 1;
                 var sheet = Math.floor(type / 256);
@@ -44989,6 +45015,11 @@ var System = (function () {
                     var pushwall = new Model.Pushwall();
                     entity.sprite.flat = true;
                     entity.pushwall = pushwall;
+                    entity.block = new Model.Block();
+                    entity.block.index = entity.sprite.type;
+                    entity.block.sheet = entity.sprite.sheet;
+                    entity.spatial.radius = 0.5;
+                    entity.sprite = null;
                 }
                 world.entities.push(entity);
             }
@@ -45000,12 +45031,8 @@ var System = (function () {
         this.flags.init = false;
     };
     System.prototype.update = function (inputstate) {
-        physics_1.default.update(this.world, inputstate);
-        if (inputstate.saveState) {
-            inputstate.saveState = false;
-            this.json = JSON.stringify(this.world);
-        }
-        else if (inputstate.loadState) {
+        if (inputstate.loadState) {
+            this.json = localStorage.getItem('state1');
             inputstate.loadState = false;
             this.world = JSON.parse(this.json);
             Object.setPrototypeOf(this.world.grid, Model.Grid.prototype);
@@ -45015,7 +45042,16 @@ var System = (function () {
                     Object.setPrototypeOf(e.door, Model.Door.prototype);
                 if (e.pushwall != null)
                     Object.setPrototypeOf(e.pushwall, Model.Pushwall.prototype);
+                if (e.player != null) {
+                    inputstate.angleZ = e.spatial.facing;
+                }
             }
+        }
+        physics_1.default.update(this.world, inputstate);
+        if (inputstate.saveState) {
+            inputstate.saveState = false;
+            this.json = JSON.stringify(this.world);
+            localStorage.setItem('state1', this.json);
         }
     };
     return System;
@@ -55306,6 +55342,7 @@ exports.default = Flags;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+var Model = __webpack_require__(3);
 var Physics = (function () {
     function Physics() {
     }
@@ -55324,15 +55361,17 @@ var Physics = (function () {
             }
         }
     };
-    Physics.checkCollision = function (me, x, y, r, world) {
-        this.poly[0][0] = x - r;
-        this.poly[0][1] = y - r;
-        this.poly[1][0] = x + r;
-        this.poly[1][1] = y + r;
-        this.poly[2][0] = x - r;
-        this.poly[2][1] = y + r;
-        this.poly[3][0] = x + r;
-        this.poly[3][1] = y - r;
+    Physics.checkCollision = function (me, x, y, r, ox, oy, world) {
+        var dx = (ox - x) != 0 ? 0.95 : 0;
+        var dy = (oy - y) != 0 ? 0.95 : 0;
+        this.poly[0][0] = x - r * dx;
+        this.poly[0][1] = y - r * dy;
+        this.poly[1][0] = x + r * dx;
+        this.poly[1][1] = y + r * dy;
+        this.poly[2][0] = x - r * dx;
+        this.poly[2][1] = y + r * dy;
+        this.poly[3][0] = x + r * dx;
+        this.poly[3][1] = y - r * dy;
         for (var _i = 0, _a = this.poly; _i < _a.length; _i++) {
             var p = _a[_i];
             if (world.grid.getSolid(p[0], p[1]))
@@ -55347,7 +55386,7 @@ var Physics = (function () {
                             return true;
                         }
                         else if (entity.pushwall) {
-                            entity.pushwall.push();
+                            entity.pushwall.push(entity, me);
                             return true;
                         }
                     }
@@ -55365,14 +55404,24 @@ var Physics = (function () {
                 var vy = entity.spatial.velocity[1];
                 var x = entity.spatial.position[0];
                 var y = entity.spatial.position[1];
-                var r = 0.25;
+                var r = entity.spatial.radius;
                 var newX = x + vx;
-                if (!this.checkCollision(entity, newX, y, r, world)) {
+                var col = true;
+                if (!this.checkCollision(entity, newX, y, r, x, y, world)) {
                     x = newX;
+                    col = false;
                 }
                 var newY = y + vy;
-                if (!this.checkCollision(entity, x, newY, r, world)) {
+                if (!this.checkCollision(entity, x, newY, r, x, y, world)) {
                     y = newY;
+                    col = col ? true : false;
+                }
+                if (col && entity.pushwall != null) {
+                    entity.pushwall.state = Model.PushwallState.Settled;
+                    entity.spatial.velocity[0] = 0;
+                    entity.spatial.velocity[1] = 0;
+                    entity.spatial.velocity[2] = 0;
+                    console.log('settled');
                 }
                 entity.spatial.position[0] = x;
                 entity.spatial.position[1] = y;
@@ -55410,12 +55459,100 @@ var Physics = (function () {
                         entity.sprite.offset[1] = entity.door.offset;
                 }
             }
+            if (entity.pushwall != null) {
+                var spatial = entity.spatial;
+                var pushwall = entity.pushwall;
+                if (pushwall.state == Model.PushwallState.Triggered) {
+                    var speed = 0.01;
+                    spatial.velocity[0] = pushwall.direction[0] * speed;
+                    spatial.velocity[1] = pushwall.direction[1] * speed;
+                    //spatial.position[0] += pushwall.direction[0] * speed;
+                    //spatial.position[1] += pushwall.direction[1] * speed;
+                }
+            }
         }
     };
     return Physics;
 }());
 Physics.poly = [[0, 0], [0, 0], [0, 0], [0, 0]];
 exports.default = Physics;
+
+
+/***/ }),
+/* 20 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var THREE = __webpack_require__(0);
+var manager_1 = __webpack_require__(1);
+var BlockManager = (function (_super) {
+    __extends(BlockManager, _super);
+    function BlockManager(scene, texture, sheetIndex) {
+        var _this = _super.call(this) || this;
+        _this.sheetindex = sheetIndex;
+        _this.group = new THREE.Group();
+        _this.material = new THREE.MeshBasicMaterial({ map: texture, overdraw: 0.5 });
+        scene.add(_this.group);
+        return _this;
+    }
+    BlockManager.prototype.newBlock = function () {
+        var geometry = new THREE.CubeGeometry(1, 1, 1);
+        geometry.rotateX(Math.PI / 2);
+        var gridMesh = new THREE.Mesh(geometry, this.material);
+        this.group.add(gridMesh);
+    };
+    BlockManager.prototype.update = function (world) {
+        var size = 16;
+        var px = 1.0 / 1024;
+        var tw = 64 / 1024 - px;
+        var th = 64 / 1024;
+        for (var _i = 0, _a = this.group.children; _i < _a.length; _i++) {
+            var child = _a[_i];
+            child.visible = false;
+        }
+        var count = 0;
+        for (var _b = 0, _c = world.entities; _b < _c.length; _b++) {
+            var entity = _c[_b];
+            var block = entity.block;
+            var spatial = entity.spatial;
+            if (spatial != null && block != null && block.sheet == this.sheetindex) {
+                if (this.group.children.length <= count) {
+                    this.newBlock();
+                }
+                var mesh = this.group.children[count];
+                var index = block.index;
+                var tx = (index % size) / size + px / 2;
+                var ty = 1.0 - th - Math.floor(index / size) * th;
+                var uvs = [new THREE.Vector2(tx, ty), new THREE.Vector2(tx + tw, ty), new THREE.Vector2(tx + tw, ty + th), new THREE.Vector2(tx, ty + th)];
+                var geometry = mesh.geometry;
+                geometry.faceVertexUvs[0] = [];
+                for (var i = 0; i < 6 * 2; i += 2) {
+                    geometry.faceVertexUvs[0][i] = [uvs[3], uvs[0], uvs[2]];
+                    geometry.faceVertexUvs[0][i + 1] = [uvs[0], uvs[1], uvs[2]];
+                }
+                mesh.position.x = spatial.position[0];
+                mesh.position.y = spatial.position[1];
+                mesh.position.z = spatial.position[2];
+                mesh.visible = true;
+                count++;
+            }
+        }
+    };
+    return BlockManager;
+}(manager_1.default));
+exports.default = BlockManager;
 
 
 /***/ })

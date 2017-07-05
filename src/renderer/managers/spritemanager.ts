@@ -131,7 +131,7 @@ export default class SpriteManager extends Manager
                 {
                     position[vp++] += spatial.position[0] + sprite.offset[0];
                     position[vp++] += spatial.position[1] + sprite.offset[1];
-                    position[vp++] += spatial.position[2] + 0.5 + sprite.offset[2];
+                    position[vp++] += spatial.position[2] + sprite.offset[2];
                 }
 
                 draw++;
