@@ -33,7 +33,9 @@ export class Creature
 export class Sprite
 {
     sheet:number = 0;
-    type:ItemTypes = ItemTypes.Demo;
+    sheetSize:number = 16;
+    index:number = 0;
+
     flat:boolean = false;
     offset=[0, 0, 0];
 }

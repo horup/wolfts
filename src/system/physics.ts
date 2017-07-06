@@ -87,6 +87,12 @@ export default class Physics
         
         for (let entity of world.entities)
         {
+            if (entity.creature != null && entity.sprite != null)
+            {
+                entity.creature.animation += 0.2;
+                if (entity.creature.animation > 5)
+                    entity.creature.animation = 0;
+            }
             if (entity.spatial != null)
             {
                 let vx = entity.spatial.velocity[0];

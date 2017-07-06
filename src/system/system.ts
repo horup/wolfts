@@ -43,7 +43,7 @@ export default class System
                         e.door = door;
                         e.sprite = new Model.Sprite();
                         e.sprite.sheet = 0;
-                        e.sprite.type = 98;
+                        e.sprite.index = 98;
                         e.sprite.flat = true;
                         if (grid.getTile(x-1, y) != Model.Tile.Void)
                             e.spatial.facing = -Math.PI/2;
@@ -52,31 +52,9 @@ export default class System
                 }
             }
 
-            /*for (let i = 0; i < data.length; i++)
-            {
-                grid.tiles[i] = data[i] - 1;
-                if (grid.tiles[i] == 98) // door
-                {
-                    let door:Model.Door = new Model.Door();
-                    let spatial:Model.Spatial = new Model.Spatial();
-                    let e = new Model.Entity();
-                    e.spatial = spatial;
-                    e.spatial.position[0] = i % grid.width + 0.5;
-                    e.spatial.position[1] = -(Math.ceil(i / grid.width)) + 0.5;
-                    e.door = door;
-                    e.sprite = new Model.Sprite();
-                    e.sprite.sheet = 1;
-                    e.sprite.type = 98;
-                    e.sprite.flat = true;
-                    world.entities.push(e);
-                    grid.tiles[i] = Model.Tile.Void;
-                }
-            }*/
-
             let objects = map.layers[1].objects;
             for (let obj of objects)
             {
-               // let type = obj.gid - 256 - 1;
                 let entity = new Model.Entity();
                 entity.spatial = new Model.Spatial();
                 entity.spatial.position[0] = obj.x / map.tilesets[0].tilewidth + 0.5;
@@ -85,12 +63,26 @@ export default class System
                 entity.sprite = new Model.Sprite();
                 let type = obj.gid - 1;
                 let sheet = Math.floor(type / 256);
-                entity.sprite.type = type % 256;
+                entity.sprite.index = type % 256;
                 entity.sprite.sheet = sheet;
-                if (type == 306)
+                if (type == 306) // player
                 {
                     let player = new Model.Player();
                     entity.player = player;
+                }
+                else if (type == 307) // dog
+                {
+                }
+                else if (type == 308) // guard
+                {
+                    entity.sprite.index = 0;
+                    entity.sprite.sheet = 2;
+                    entity.sprite.sheetSize = 8;
+
+                    entity.creature = new Model.Creature;
+                    entity.creature.type = Model.CreatureTypes.Guard;
+                     world.entities.push(entity);
+                    break;
                 }
                 else if (type < 256)
                 {
@@ -98,7 +90,7 @@ export default class System
                     entity.sprite.flat = true;
                     entity.pushwall = pushwall;
                     entity.block = new Model.Block();
-                    entity.block.index = entity.sprite.type;
+                    entity.block.index = entity.sprite.index;
                     entity.block.sheet = entity.sprite.sheet;
                     entity.spatial.radius = 0.5;
                     entity.sprite = null;

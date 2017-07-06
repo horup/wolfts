@@ -14,37 +14,56 @@ export default class Renderer
     renderer:THREE.WebGLRenderer;
     camera:THREE.Camera;
     system:System;
-    textures = {sprites:null as THREE.Texture, walls:null as THREE.Texture};
+    textures:THREE.Texture[] = [];
+    loader = new THREE.TextureLoader();
+    numTextures = 0;
+    
+    loadTexture(path:string)
+    {
+        let index = this.numTextures;
+        this.numTextures++;
+        this.loader.load(path, (tex) =>
+        {
+            tex.magFilter = THREE.NearestFilter;
+            tex.minFilter = THREE.NearestFilter;
+            tex.magFilter = THREE.NearestFilter;
+            tex.minFilter = THREE.NearestFilter;
+            this.numTextures--;
+            this.textures[index] = tex;
+            
+            if (this.numTextures == 0)
+            {
+                this.textureLoaded();
+            }
+        })
+    }
+
+    textureLoaded()
+    {
+        this.input = new Input();
+        this.renderer = new THREE.WebGLRenderer();
+        this.renderer.autoClear = false;
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
+        this.resize();
+        this.managers = [
+            new Managers.CameraManager(this.camera, this.input),
+            new Managers.AnimationManager(this.camera),
+            new Managers.GridManager(this.scene, this.textures[0]),
+            new Managers.BlockManager(this.scene, this.textures[0], 0),
+            new Managers.SpriteManager(this.scene, this.textures[0], this.camera, 0),
+            new Managers.SpriteManager(this.scene, this.textures[1], this.camera, 1),
+            new Managers.SpriteManager(this.scene, this.textures[2], this.camera, 2)
+            ] as Managers.Manager[];
+        document.body.appendChild(this.renderer.domElement);
+        this.animate();
+    }
+
     constructor(system:System)
     {
         this.system = system;
-        let loader = new THREE.TextureLoader();
-        loader.load("dist/textures/sprites.png", (tex1) => 
-        {
-            loader.load('dist/textures/walls.png', (tex2) => 
-            {
-                tex1.magFilter = THREE.NearestFilter;
-                tex1.minFilter = THREE.NearestFilter;
-                tex2.magFilter = THREE.NearestFilter;
-                tex2.minFilter = THREE.NearestFilter;
-                this.textures.sprites = tex1;
-                this.textures.walls = tex2;
-                this.input = new Input();
-                this.renderer = new THREE.WebGLRenderer();
-                this.renderer.autoClear = false;
-                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
-                this.resize();
-                this.managers = [
-                    new Managers.CameraManager(this.camera, this.input),
-                    new Managers.GridManager(this.scene, this.textures.walls),
-                    new Managers.BlockManager(this.scene, this.textures.walls, 0),
-                    new Managers.SpriteManager(this.scene, this.textures.walls, this.camera, 0),
-                    new Managers.SpriteManager(this.scene, this.textures.sprites, this.camera, 1)
-                    ] as Managers.Manager[];
-                document.body.appendChild(this.renderer.domElement);
-                this.animate();
-            });
-        });
+        this.loadTexture("dist/textures/walls.png");
+        this.loadTexture("dist/textures/sprites.png");
+        this.loadTexture("dist/textures/guard.png");
     }
 
     private resize()

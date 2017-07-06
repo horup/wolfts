@@ -46,10 +46,7 @@ export default class SpriteManager extends Manager
 
     update(world:Model.World)
     {
-        let px = 1.0 / world.map.tilesets[0].imagewidth;
-        let tileset = world.map.tilesets[0];
-        let tw = tileset.tilewidth / tileset.imagewidth - px;
-        let th = tileset.tileheight / tileset.imageheight;
+        
         if (this.length < world.entities.length)
         {
             let t = new THREE.Vector3(1, 0.5, 0);
@@ -99,9 +96,13 @@ export default class SpriteManager extends Manager
                     position[vp+i] = this.planeTemplateVertices[i];
                 }
 
-                let index = entity.sprite.type;
-                let tx = (index % tileset.columns) / tileset.columns + px / 2;
-                let ty = 1.0 - th - Math.floor(index / tileset.columns) * th;
+                let px = 0.0;
+                let tw = 1 / sprite.sheetSize;
+                let th = 1 / sprite.sheetSize;
+
+                let index = entity.sprite.index;
+                let tx = (index % sprite.sheetSize) / sprite.sheetSize + px / 2;
+                let ty = 1.0 - th - Math.floor(index / sprite.sheetSize) * th;
 
                 uv[uvp++] = tx;
                 uv[uvp++] = ty + th;
@@ -140,5 +141,6 @@ export default class SpriteManager extends Manager
 
         buffer.setDrawRange(0, draw*6);
         (buffer.attributes as any).position.needsUpdate = true;
+        (buffer.attributes as any).uv.needsUpdate = true;
     }
 }
