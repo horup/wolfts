@@ -108,6 +108,7 @@ export default class System
         this.flags.init = false;
     }
     json:string = null;
+    physics = new Physics();
     update(inputstate:InputState)
     {
         if (inputstate.loadState)
@@ -130,7 +131,7 @@ export default class System
             }
         }
 
-        Physics.update(this.world, inputstate);
+        this.physics.update(this.world, inputstate);
 
         if (inputstate.saveState)
         {

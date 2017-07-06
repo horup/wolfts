@@ -44249,7 +44249,7 @@ exports.Level = Level;
 Object.defineProperty(exports, "__esModule", { value: true });
 //import * as renderer from './renderer';
 var _1 = __webpack_require__(5);
-var system_1 = __webpack_require__(16);
+var system_1 = __webpack_require__(17);
 var system = new system_1.default();
 var renderer = new _1.default(system);
 system.loadMap('maps/e01m01.json');
@@ -44487,7 +44487,7 @@ var spritemanager_1 = __webpack_require__(14);
 exports.SpriteManager = spritemanager_1.default;
 var blockmanager_1 = __webpack_require__(15);
 exports.BlockManager = blockmanager_1.default;
-var animationmanager_1 = __webpack_require__(21);
+var animationmanager_1 = __webpack_require__(16);
 exports.AnimationManager = animationmanager_1.default;
 
 
@@ -45009,9 +45009,52 @@ exports.default = BlockManager;
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-var system_1 = __webpack_require__(17);
-exports.default = system_1.default;
+var THREE = __webpack_require__(0);
+var manager_1 = __webpack_require__(1);
+var AnimationManager = (function (_super) {
+    __extends(AnimationManager, _super);
+    function AnimationManager(camera) {
+        var _this = _super.call(this) || this;
+        _this.v1 = new THREE.Vector3(0, 0, 0);
+        _this.v2 = new THREE.Vector3(0, 0, 0);
+        _this.camera = camera;
+        return _this;
+    }
+    AnimationManager.prototype.update = function (world) {
+        for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
+            var entity = _a[_i];
+            if (entity.sprite != null && entity.spatial != null) {
+                if (entity.creature != null) {
+                    var offset = Math.PI / 8;
+                    var spatial = entity.spatial;
+                    this.v1.set(Math.cos(spatial.facing + offset), Math.sin(spatial.facing + offset), 0);
+                    this.v2.set(spatial.position[0] - this.camera.position.x, spatial.position[1] - this.camera.position.y, 0);
+                    this.v2.normalize();
+                    this.v2.sub(this.v1);
+                    var a = Math.atan2(this.v2.y, this.v2.x);
+                    if (a < 0)
+                        a += Math.PI;
+                    a /= Math.PI;
+                    var col = Math.floor(a * 8);
+                    entity.sprite.index = col;
+                }
+            }
+        }
+    };
+    return AnimationManager;
+}(manager_1.default));
+exports.default = AnimationManager;
 
 
 /***/ }),
@@ -45021,15 +45064,27 @@ exports.default = system_1.default;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+var system_1 = __webpack_require__(18);
+exports.default = system_1.default;
+
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
 var Model = __webpack_require__(2);
-var $ = __webpack_require__(18);
-var flags_1 = __webpack_require__(19);
-var physics_1 = __webpack_require__(20);
+var $ = __webpack_require__(19);
+var flags_1 = __webpack_require__(20);
+var physics_1 = __webpack_require__(21);
 var System = (function () {
     function System() {
         this.flags = new flags_1.default();
         this.world = new Model.World();
         this.json = null;
+        this.physics = new physics_1.default();
     }
     System.prototype.loadMap = function (url) {
         var _this = this;
@@ -45130,7 +45185,7 @@ var System = (function () {
                 }
             }
         }
-        physics_1.default.update(this.world, inputstate);
+        this.physics.update(this.world, inputstate);
         if (inputstate.saveState) {
             inputstate.saveState = false;
             this.json = JSON.stringify(this.world);
@@ -45143,7 +45198,7 @@ exports.default = System;
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -55403,7 +55458,7 @@ return jQuery;
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55419,7 +55474,7 @@ exports.default = Flags;
 
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55428,8 +55483,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var Model = __webpack_require__(2);
 var Physics = (function () {
     function Physics() {
+        this.poly = [[0, 0], [0, 0], [0, 0], [0, 0]];
+        this.poly2 = [[0, 0], [0, 0], [0, 0], [0, 0]];
+        this.entityMap = [];
     }
-    Physics.updateInput = function (world, inputstate) {
+    Physics.prototype.updateInput = function (world, inputstate) {
         for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
             var entity = _a[_i];
             if (entity.sprite != null && entity.spatial != null && entity.player != null) {
@@ -55444,7 +55502,7 @@ var Physics = (function () {
             }
         }
     };
-    Physics.setPoly = function (poly, x, y, r, dx, dy) {
+    Physics.prototype.setPoly = function (poly, x, y, r, dx, dy) {
         poly[0][0] = x - r * dx;
         poly[0][1] = y - r * dy;
         poly[1][0] = x + r * dx;
@@ -55454,7 +55512,7 @@ var Physics = (function () {
         poly[3][0] = x + r * dx;
         poly[3][1] = y - r * dy;
     };
-    Physics.checkCollision = function (me, x, y, r, ox, oy, world) {
+    Physics.prototype.checkCollision = function (me, x, y, r, ox, oy, world) {
         var dx = 0.95;
         var dy = 0.95;
         this.setPoly(this.poly, x, y, r, dx, dy);
@@ -55462,23 +55520,27 @@ var Physics = (function () {
             var p = _a[_i];
             if (world.grid.getSolid(p[0], p[1]))
                 return true;
-            for (var _b = 0, _c = world.entities; _b < _c.length; _b++) {
-                var entity = _c[_b];
-                if (entity != me && entity.spatial != null) {
-                    this.setPoly(this.poly2, entity.spatial.position[0], entity.spatial.position[1], entity.spatial.radius, dx, dy);
-                    for (var _d = 0, _e = this.poly2; _d < _e.length; _d++) {
-                        var p2 = _e[_d];
-                        if (Math.floor(p[0]) == Math.floor(p2[0])
-                            && Math.floor(p[1]) == Math.floor(p2[1])) {
-                            if (entity.door != null && entity.door.offset != 1.0) {
-                                entity.door.open();
-                                return true;
+            var ei = this.calcIndex(p[0], p[1], world);
+            if (ei >= 0 && ei < this.entityMap.length) {
+                var entities = this.entityMap[ei];
+                for (var _b = 0, entities_1 = entities; _b < entities_1.length; _b++) {
+                    var entity = entities_1[_b];
+                    if (entity != me && entity.spatial != null) {
+                        this.setPoly(this.poly2, entity.spatial.position[0], entity.spatial.position[1], entity.spatial.radius, dx, dy);
+                        for (var _c = 0, _d = this.poly2; _c < _d.length; _c++) {
+                            var p2 = _d[_c];
+                            if (Math.floor(p[0]) == Math.floor(p2[0])
+                                && Math.floor(p[1]) == Math.floor(p2[1])) {
+                                if (entity.door != null && entity.door.offset != 1.0) {
+                                    entity.door.open();
+                                    return true;
+                                }
+                                else if (entity.pushwall) {
+                                    entity.pushwall.push(entity, me);
+                                    return true;
+                                }
+                                break;
                             }
-                            else if (entity.pushwall) {
-                                entity.pushwall.push(entity, me);
-                                return true;
-                            }
-                            break;
                         }
                     }
                 }
@@ -55486,10 +55548,46 @@ var Physics = (function () {
         }
         return false;
     };
-    Physics.update = function (world, inputstate) {
-        this.updateInput(world, inputstate);
+    Physics.prototype.calcIndex = function (x, y, world) {
+        x = Math.floor(x);
+        y = Math.floor(Math.abs(y));
+        var i = (x % world.grid.width) + y * world.grid.width;
+        return i;
+    };
+    Physics.prototype.update = function (world, inputstate) {
+        if (this.entityMap.length < world.grid.width * world.grid.height) {
+            this.entityMap = new Array(world.grid.width * world.grid.height);
+            for (var i = 0; i < this.entityMap.length; i++) {
+                this.entityMap[i] = [];
+            }
+        }
+        for (var i = 0; i < this.entityMap.length; i++) {
+            this.entityMap[i] = [];
+        }
+        var _loop_1 = function (entity) {
+            if (entity.spatial != null) {
+                var spatial = entity.spatial;
+                for (var y = -1; y <= 1; y++) {
+                    for (var x = -1; x <= 1; x++) {
+                        var s = entity.spatial;
+                        var i = this_1.calcIndex(s.position[0] + s.radius * x, s.position[1] + s.radius, world);
+                        if (i >= 0 && i < this_1.entityMap.length) {
+                            if (this_1.entityMap[i].find(function (e) { return e == entity; }) == undefined) {
+                                this_1.entityMap[i].push(entity);
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        var this_1 = this;
         for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
             var entity = _a[_i];
+            _loop_1(entity);
+        }
+        this.updateInput(world, inputstate);
+        for (var _b = 0, _c = world.entities; _b < _c.length; _b++) {
+            var entity = _c[_b];
             if (entity.creature != null && entity.sprite != null) {
                 entity.creature.animation += 0.2;
                 if (entity.creature.animation > 5)
@@ -55569,63 +55667,7 @@ var Physics = (function () {
     };
     return Physics;
 }());
-Physics.poly = [[0, 0], [0, 0], [0, 0], [0, 0]];
-Physics.poly2 = [[0, 0], [0, 0], [0, 0], [0, 0]];
 exports.default = Physics;
-
-
-/***/ }),
-/* 21 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-var THREE = __webpack_require__(0);
-var manager_1 = __webpack_require__(1);
-var AnimationManager = (function (_super) {
-    __extends(AnimationManager, _super);
-    function AnimationManager(camera) {
-        var _this = _super.call(this) || this;
-        _this.v1 = new THREE.Vector3(0, 0, 0);
-        _this.v2 = new THREE.Vector3(0, 0, 0);
-        _this.camera = camera;
-        return _this;
-    }
-    AnimationManager.prototype.update = function (world) {
-        for (var _i = 0, _a = world.entities; _i < _a.length; _i++) {
-            var entity = _a[_i];
-            if (entity.sprite != null && entity.spatial != null) {
-                if (entity.creature != null) {
-                    var offset = Math.PI / 8;
-                    var spatial = entity.spatial;
-                    this.v1.set(Math.cos(spatial.facing + offset), Math.sin(spatial.facing + offset), 0);
-                    this.v2.set(spatial.position[0] - this.camera.position.x, spatial.position[1] - this.camera.position.y, 0);
-                    this.v2.normalize();
-                    this.v2.sub(this.v1);
-                    var a = Math.atan2(this.v2.y, this.v2.x);
-                    if (a < 0)
-                        a += Math.PI;
-                    a /= Math.PI;
-                    var col = Math.floor(a * 8);
-                    entity.sprite.index = col;
-                }
-            }
-        }
-    };
-    return AnimationManager;
-}(manager_1.default));
-exports.default = AnimationManager;
 
 
 /***/ })

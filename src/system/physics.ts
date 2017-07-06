@@ -3,7 +3,7 @@ import * as Model from '../model';
 import * as SAT from 'sat';
 export default class Physics
 {
-    static updateInput(world:Model.World, inputstate:InputState)
+    updateInput(world:Model.World, inputstate:InputState)
     {
         for (let entity of world.entities)
         {
@@ -20,10 +20,10 @@ export default class Physics
         }
     }
 
-    static poly = [[0,0], [0,0], [0,0], [0,0]];
-    static poly2 = [[0,0], [0,0], [0,0], [0,0]];
+    poly = [[0,0], [0,0], [0,0], [0,0]];
+    poly2 = [[0,0], [0,0], [0,0], [0,0]];
 
-    static setPoly(poly:number[][], x:number, y:number, r:number, dx:number, dy:number)
+    setPoly(poly:number[][], x:number, y:number, r:number, dx:number, dy:number)
     {
         poly[0][0] = x - r * dx;
         poly[0][1] = y - r * dy;
@@ -38,7 +38,7 @@ export default class Physics
         poly[3][1] = y - r * dy;
     }
 
-    static checkCollision(me:Model.Entity, x:number, y:number, r:number, ox:number, oy:number, world:Model.World)
+    checkCollision(me:Model.Entity, x:number, y:number, r:number, ox:number, oy:number, world:Model.World)
     {
         let dx = 0.95;
         let dy = 0.95;
@@ -48,41 +48,93 @@ export default class Physics
             if (world.grid.getSolid(p[0], p[1]))
                 return true;
 
-            for (let entity of world.entities)
+            let ei = this.calcIndex(p[0], p[1], world);
+            if (ei >= 0 && ei < this.entityMap.length)
             {
-                if (entity != me && entity.spatial != null)
+                let entities = this.entityMap[ei];
+                for (let entity of entities)
                 {
-                    this.setPoly(this.poly2, entity.spatial.position[0], entity.spatial.position[1], entity.spatial.radius, dx, dy );
-                    for (let p2 of this.poly2)
+                    if (entity != me && entity.spatial != null)
                     {
-                        if (Math.floor(p[0]) == Math.floor(p2[0]) 
-                        &&  Math.floor(p[1]) == Math.floor(p2[1]))
+                        this.setPoly(this.poly2, entity.spatial.position[0], entity.spatial.position[1], entity.spatial.radius, dx, dy );
+                        for (let p2 of this.poly2)
                         {
-                            if (entity.door != null && entity.door.offset != 1.0)
+                            if (Math.floor(p[0]) == Math.floor(p2[0]) 
+                            &&  Math.floor(p[1]) == Math.floor(p2[1]))
                             {
-                                entity.door.open();
-                                return true;
-                            }
-                            else if (entity.pushwall)
-                            {
-                                entity.pushwall.push(entity, me);
-                                return true;
-                            }
+                                if (entity.door != null && entity.door.offset != 1.0)
+                                {
+                                    entity.door.open();
+                                    return true;
+                                }
+                                else if (entity.pushwall)
+                                {
+                                    entity.pushwall.push(entity, me);
+                                    return true;
+                                }
 
-                            break;
+                                break;
+                            }
                         }
                     }
                 }
             }
         }
 
-        
-
         return false;
     }
 
-    static update(world:Model.World, inputstate:InputState)
+    entityMap:Model.Entity[][] = [];
+
+    calcIndex(x:number, y:number, world:Model.World)
     {
+        x = Math.floor(x);
+        y = Math.floor(Math.abs(y));
+        let i = (x % world.grid.width) + y * world.grid.width;
+        return i;
+    }
+
+    update(world:Model.World, inputstate:InputState)
+    {
+        if (this.entityMap.length < world.grid.width * world.grid.height)
+        {
+            this.entityMap = new Array(world.grid.width * world.grid.height);
+            for (let i = 0; i < this.entityMap.length; i++)
+            {
+                this.entityMap[i] = [];
+            }
+        }
+
+        for (let i = 0; i < this.entityMap.length; i++)
+        {
+            this.entityMap[i] = [];
+        }
+
+        for (let entity of world.entities)
+        {
+            if (entity.spatial != null)
+            {
+                let spatial = entity.spatial;
+
+                for (let y = -1; y <= 1; y++)
+                {
+                    for (let x = -1; x <= 1; x++)
+                    {
+                        let s = entity.spatial;
+                        let i = this.calcIndex(s.position[0] + s.radius * x, s.position[1] + s.radius, world);
+                        if (i >= 0 && i < this.entityMap.length)
+                        {
+                            if (this.entityMap[i].find((e)=>e == entity) == undefined)
+                            {
+                                this.entityMap[i].push(entity);
+                            }
+                        }
+                    }
+                }
+                
+            }
+        }
+
         this.updateInput(world, inputstate);
         
         for (let entity of world.entities)
