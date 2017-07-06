@@ -122,7 +122,6 @@ export default class Physics
                     entity.spatial.velocity[0] = 0;
                     entity.spatial.velocity[1] = 0;
                     entity.spatial.velocity[2] = 0;
-                    console.log('settled');
                 }
 
                 entity.spatial.position[0] = x;

@@ -46,8 +46,7 @@ export default class SpriteManager extends Manager
 
     update(world:Model.World)
     {
-        
-        if (this.length < world.entities.length)
+        if (this.length < world.entities.length || this.spriteMesh == null)
         {
             let t = new THREE.Vector3(1, 0.5, 0);
             let t2 = new THREE.Vector3(0, 1 ,0);
@@ -55,7 +54,7 @@ export default class SpriteManager extends Manager
             this.length = world.entities.length * 2;
             let geometry = new THREE.PlaneGeometry(1,1);
             let final = new THREE.Geometry();
-            for (let i = 0; i < this.length; i++)
+            for (let i = 0; i < this.length + 1; i++)
             {
                 final.merge(geometry, new THREE.Matrix4());
             }

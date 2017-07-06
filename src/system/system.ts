@@ -81,8 +81,7 @@ export default class System
 
                     entity.creature = new Model.Creature;
                     entity.creature.type = Model.CreatureTypes.Guard;
-                     world.entities.push(entity);
-                    break;
+                    world.entities.push(entity);
                 }
                 else if (type < 256)
                 {

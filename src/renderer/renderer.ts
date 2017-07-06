@@ -30,7 +30,6 @@ export default class Renderer
             tex.minFilter = THREE.NearestFilter;
             this.numTextures--;
             this.textures[index] = tex;
-            
             if (this.numTextures == 0)
             {
                 this.textureLoaded();

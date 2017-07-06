@@ -44845,14 +44845,14 @@ var SpriteManager = (function (_super) {
         }
     };
     SpriteManager.prototype.update = function (world) {
-        if (this.length < world.entities.length) {
+        if (this.length < world.entities.length || this.spriteMesh == null) {
             var t = new THREE.Vector3(1, 0.5, 0);
             var t2 = new THREE.Vector3(0, 1, 0);
             this.dispose();
             this.length = world.entities.length * 2;
             var geometry = new THREE.PlaneGeometry(1, 1);
             var final = new THREE.Geometry();
-            for (var i = 0; i < this.length; i++) {
+            for (var i = 0; i < this.length + 1; i++) {
                 final.merge(geometry, new THREE.Matrix4());
             }
             var bufferGeometry = new THREE.BufferGeometry();
@@ -45093,7 +45093,6 @@ var System = (function () {
                     entity.creature = new Model.Creature;
                     entity.creature.type = Model.CreatureTypes.Guard;
                     world.entities.push(entity);
-                    break;
                 }
                 else if (type < 256) {
                     var pushwall = new Model.Pushwall();
@@ -55518,7 +55517,6 @@ var Physics = (function () {
                     entity.spatial.velocity[0] = 0;
                     entity.spatial.velocity[1] = 0;
                     entity.spatial.velocity[2] = 0;
-                    console.log('settled');
                 }
                 entity.spatial.position[0] = x;
                 entity.spatial.position[1] = y;
